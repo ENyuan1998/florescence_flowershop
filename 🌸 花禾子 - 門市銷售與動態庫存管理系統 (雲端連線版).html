@@ -70,7 +70,7 @@
         <h2 class="paper-title" style="margin-top:20px;">二、 包材資材進貨 (不計損耗)</h2>
         <div id="paperItemsContainer"></div>
         <button class="btn btn-paper" onclick="addItemCard('paper')">＋ 新增包材品項</button>
-        <button class="btn" style="background-color: #95e1d3; margin-top: 30px; font-size:1.1em; padding:15px;" onclick="saveAllToCloudAndStock()">💾 儲存進貨（自動增加庫存並更新流水帳）</button>
+        <button class="btn" style="background-color: #95e1d3; margin-top: 30px; font-size:1.1em; padding:15px;" onclick="saveAllToCloudAndStock()">💾 儲存進貨（同步寫入試算表並更新雲端）</button>
     </div>
 
     <div id="tab-order" class="tab-content">
@@ -162,23 +162,19 @@ let ledgerData = JSON.parse(localStorage.getItem('flowerLedgerDataV8')) || [];
 let currentStock = {};
 let pendingOrders = [];
 
-// 中央雲端狀態拉取機制
 async function fetchCloudData() {
     const isWiped = localStorage.getItem('flower_system_wiped_v8');
     document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步待處理銷貨單與庫存...';
     try {
-        // 1. 同步雲端暫存區（動態庫存、門市掛單）
         const cloudRes = await fetch(CLOUD_API).then(r => r.json());
         currentStock = cloudRes.currentStock || {};
         pendingOrders = cloudRes.pendingOrders || [];
         
-        // 2. 如果使用者按了清除，且尚未新增任何新進貨，則拒絕去 Google 試算表拉回舊數據
         if (isWiped === 'true' && ledgerData.length === 0) {
             document.getElementById('syncStatus').innerText = '✨ 雲端連線就緒｜目前無進貨歷史紀錄';
             return;
         }
 
-        // 3. 同步 Google 試算表靜態流水帳
         const urlSpreadsheet = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
         const ssResponse = await fetch(urlSpreadsheet).then(r => r.json());
         if (ssResponse.values && ssResponse.values.length > 1) {
@@ -193,7 +189,7 @@ async function fetchCloudData() {
             }
             ledgerData = cloudLedger;
             localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
-            localStorage.removeItem('flower_system_wiped_v8'); // 重新有了有效資料，解除警報
+            localStorage.removeItem('flower_system_wiped_v8'); 
         }
         document.getElementById('syncStatus').innerText = '☁️ 跨店雲端資料同步完成！';
     } catch (e) {
@@ -226,16 +222,12 @@ function renderMaintenanceInfo() {
     document.getElementById('checkLedgerCount').innerText = ledgerData.length;
 }
 
-// 🟢 修正一：一鍵清除危險區，徹底斬斷試算表的舊資料快取機制
 async function wipeTestDataAndGoLive() {
     if(!confirm("確定要將本地與雲端暫存資料全部洗淨歸零嗎？")) return;
-    
-    // 設置一個強制性的防護閘門標記到瀏覽器中
     localStorage.setItem('flower_system_wiped_v8', 'true');
     localStorage.removeItem('flowerLedgerDataV8');
     localStorage.removeItem('flowerSalesHistoryV8');
     
-    // 清除雲端庫存與掛單區
     await fetch(CLOUD_API, {
         method: "POST",
         body: JSON.stringify({ action: "overrideStock", stock: {} })
@@ -245,7 +237,7 @@ async function wipeTestDataAndGoLive() {
     currentStock = {};
     pendingOrders = [];
     
-    alert("✨ 本地緩存已全數摧毀歸零！\n溫馨提示：如果您原先在 Google 試算表上有手動填寫進貨格子，請記得去把格子刪掉，重整網頁才不會被重新抓回來喔！");
+    alert("✨ 本地緩存已全數摧毀歸零！");
     await fetchCloudData();
     switchTab('tab-input');
 }
@@ -345,16 +337,16 @@ async function deleteOrder(orderId) {
     } catch(e) { alert("退單失敗"); }
 }
 
-// 🟢 修正二：記帳存檔時，當下立刻寫入本地變數陣列，確保財務報表、流水帳分頁即時同步刷新！
+// 🟢 核心重構：扁平化傳遞數據，防止巢狀物件造成 GAS 靜默拒絕
 async function saveAllToCloudAndStock() {
     const inputDate = document.getElementById('inputDate').value;
     const cards = document.querySelectorAll('#tab-input .card');
     if(cards.length === 0) { alert("請先新增品項再儲存！"); return; }
 
-    document.getElementById('syncStatus').innerText = '⚡ 正在將新進貨推播至中央雲端庫存...';
-    
-    // 如果之前按了清除，開始輸入新進貨，就把 Wiped 狀態解除
+    document.getElementById('syncStatus').innerText = '⚡ 正在將新進貨寫入試算表並更新雲端庫存...';
     localStorage.removeItem('flower_system_wiped_v8');
+
+    let rowsToUpload = [];
 
     cards.forEach(card => {
         const nameInput = card.querySelector('.p-name');
@@ -373,20 +365,26 @@ async function saveAllToCloudAndStock() {
             let oldStock = parseFloat(currentStock[name]) || 0;
             currentStock[name] = oldStock + effectiveQty;
             
-            // 🔥 精華修正：在點擊儲存進貨的當下，即時把新資料塞進本地變數與快照裡
             const effCost = totalCost / effectiveQty;
             const isFlower = lossQtyInput.type !== 'hidden';
+            const sellPrice = Math.round(effCost * 3);
             
+            // 修正：直接以扁平一維矩陣打包，不再包多層陣列
+            rowsToUpload.push([
+                'BATCH_' + Date.now() + Math.floor(Math.random()*10), 
+                isFlower ? 'flower' : 'paper',                       
+                inputDate,                                           
+                name,                                                
+                totalQty,                                            
+                totalCost,                                           
+                lossQty,                                             
+                effCost,                                             
+                sellPrice                                            
+            ]);
+
             ledgerData.push({
-                id: 'LOCAL_' + Date.now() + Math.floor(Math.random()*100),
-                type: isFlower ? 'flower' : 'paper',
-                date: inputDate,
-                name: name,
-                totalQty: totalQty,
-                totalCost: totalCost,
-                lossQty: lossQty,
-                singleCost: effCost,
-                sellPrice: Math.round(effCost * 3)
+                id: 'LOCAL_' + Date.now(), type: isFlower ? 'flower' : 'paper', date: inputDate, name: name,
+                totalQty: totalQty, totalCost: totalCost, lossQty: lossQty, singleCost: effCost, sellPrice: sellPrice
             });
         }
     });
@@ -394,17 +392,28 @@ async function saveAllToCloudAndStock() {
     localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
 
     try {
-        await fetch(CLOUD_API, {
+        // 發送給 GAS
+        const response = await fetch(CLOUD_API, {
             method: "POST",
-            body: JSON.stringify({ action: "overrideStock", stock: currentStock })
+            body: JSON.stringify({ 
+                action: "appendLedgerRows", 
+                rows: rowsToUpload,
+                stock: currentStock 
+            })
         }).then(r => r.json());
 
-        alert(`🚀 進貨儲存成功！財務報表與即時流水帳已同步刷新完畢。`);
-        document.getElementById('flowerItemsContainer').innerHTML = '';
-        document.getElementById('paperItemsContainer').innerHTML = '';
-        addItemCard('flower');
-        await fetchCloudData();
-    } catch(e) { alert("進貨上傳失敗，請稍後重試。"); }
+        if(response.status === "success") {
+            alert(`🚀 雲端進貨儲存成功！商品資料已確實寫入試算表。`);
+            document.getElementById('flowerItemsContainer').innerHTML = '';
+            document.getElementById('paperItemsContainer').innerHTML = '';
+            addItemCard('flower');
+            await fetchCloudData();
+        } else {
+            alert("雲端處理失敗: " + response.message);
+        }
+    } catch(e) { 
+        alert("發送雲端網路異常，請確認是否已更新 GAS 總部為最新版程式碼。"); 
+    }
 }
 
 async function overrideStockFromAudit() { 
