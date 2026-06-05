@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌸 花禾子 - 門市銷售與動態庫存管理系統 (雲端連線版)</title>
+    <title>🌸 花禾子 - 門市銷售與動態庫存管理系統 (跨裝置同步優化版)</title>
     <style>
         :root {
             --primary: #ffb6c1; --primary-dark: #ff91a4; --bg: #fff5f6; --text: #4a4a4a; --card-border: #ffe4e8; --flower-color: #d16174; --paper-color: #2c97de;
@@ -43,13 +43,14 @@
         .order-details { font-size: 0.9em; background: #fff; padding: 10px; border-radius: 6px; margin: 10px 0; border: 1px dashed #ffccd5; }
         .btn { background-color: #ff91a4; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1em; margin-top: 10px; }
         .btn-danger { background-color: #ffe4e8; color: #b83b5e; } .btn-paper { background-color: #ebf5fb; color: #2980b9; border: 1px solid #d4e6f1; }
+        .btn-sm { padding: 4px 8px; font-size: 0.8em; border-radius: 6px; width: auto; inline-size: max-content; margin: 0; }
         .danger-zone { border: 2px dashed #e53e3e; background: #fff5f5; padding: 20px; border-radius: 12px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🌸 花禾子 - 門市銷售與動態庫存管理系統 (雲端連線版)</h1>
+    <h1>🌸 花禾子 - 門市銷售與動態庫存管理系統 (跨裝置同步優化版)</h1>
     <div class="sync-banner" id="syncStatus">⏳ 初始化雲端資料庫...</div>
     
     <div class="tabs">
@@ -88,8 +89,8 @@
     </div>
 
     <div id="tab-customer" class="tab-content">
-        <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">👤 門市客戶消費統計名冊</h2>
-        <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面自動匯整銷貨單數據，記錄客戶的基本聯絡資訊與歷來消費總額。</p>
+        <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">👤 門市客戶消費統計名冊 (雲端同步)</h2>
+        <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面數據即時同步自雲端試算表。可點擊「修改」按鈕手動調整客戶消費次數與總金額。</p>
         <div class="card" style="background: #fbf9ff; border-color: #e8d7f5; overflow-x: auto;">
             <table class="report-table">
                 <thead>
@@ -99,6 +100,7 @@
                         <th>消費次數</th>
                         <th style="color:#8e44ad;">消費金額統計</th>
                         <th>上次消費日期</th>
+                        <th>手動操作</th>
                     </tr>
                 </thead>
                 <tbody id="customerReportBody"></tbody>
@@ -161,15 +163,22 @@ const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
 let ledgerData = JSON.parse(localStorage.getItem('flowerLedgerDataV8')) || [];
 let currentStock = {};
 let pendingOrders = [];
+let cloudCustomers = []; // 🟢 新增：用來存放雲端下載的即時客戶名冊
 
 async function fetchCloudData() {
     const isWiped = localStorage.getItem('flower_system_wiped_v8');
-    document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步待處理銷貨單與庫存...';
+    document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步待處理銷貨單、庫存與客戶名冊...';
     try {
         const cloudRes = await fetch(CLOUD_API).then(r => r.json());
         currentStock = cloudRes.currentStock || {};
         pendingOrders = cloudRes.pendingOrders || [];
+        cloudCustomers = cloudRes.customers || []; // 🟢 新增：將雲端抓到的最新客戶名冊存入全域變數
         
+        // 如果目前在客戶名冊分頁，立刻重新渲染畫面，達成跨裝置即時同步
+        if (document.getElementById('tab-customer').classList.contains('active')) {
+            renderCustomerStats();
+        }
+
         if (isWiped === 'true' && ledgerData.length === 0) {
             document.getElementById('syncStatus').innerText = '✨ 雲端連線就緒｜目前無進貨歷史紀錄';
             return;
@@ -236,6 +245,7 @@ async function wipeTestDataAndGoLive() {
     ledgerData = [];
     currentStock = {};
     pendingOrders = [];
+    cloudCustomers = [];
     
     alert("✨ 本地緩存已全數摧毀歸零！");
     await fetchCloudData();
@@ -276,7 +286,7 @@ function renderPendingOrders() {
                 
                 <div style="background:#fff0f2; padding:12px; border-radius:10px; font-size:0.92em; color:#555; line-height: 1.6; border: 1px dashed #ffccd5;">
                     <div>1. 花材總計：$${fTotal} 元</div>
-                    <div>2. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span> 元</div>
+                    <div>1. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span> 元</div>
                     <div>3. 提袋費用：$${bPrice} 元</div>
                     <div style="font-weight:bold; font-size:1.15em; color:#b83b5e; border-top: 1px solid #ffccd5; margin-top:6px; padding-top:6px;">
                         4. 花束總計金額：$<span id="final_total_${order.id}">${fTotal + pPrice + bPrice}</span> 元
@@ -337,7 +347,6 @@ async function deleteOrder(orderId) {
     } catch(e) { alert("退單失敗"); }
 }
 
-// 🟢 核心重構：扁平化傳遞數據，防止巢狀物件造成 GAS 靜默拒絕
 async function saveAllToCloudAndStock() {
     const inputDate = document.getElementById('inputDate').value;
     const cards = document.querySelectorAll('#tab-input .card');
@@ -369,7 +378,6 @@ async function saveAllToCloudAndStock() {
             const isFlower = lossQtyInput.type !== 'hidden';
             const sellPrice = Math.round(effCost * 3);
             
-            // 修正：直接以扁平一維矩陣打包，不再包多層陣列
             rowsToUpload.push([
                 'BATCH_' + Date.now() + Math.floor(Math.random()*10), 
                 isFlower ? 'flower' : 'paper',                       
@@ -392,7 +400,6 @@ async function saveAllToCloudAndStock() {
     localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
 
     try {
-        // 發送給 GAS
         const response = await fetch(CLOUD_API, {
             method: "POST",
             body: JSON.stringify({ 
@@ -433,26 +440,71 @@ async function overrideStockFromAudit() {
     } catch(e) { alert("盤點修正失敗"); }
 }
 
+// 🟢 核心修正：改為渲染雲端同步下來的最新客戶資料，而非 local 緩存
 function renderCustomerStats() {
     const tbody = document.getElementById('customerReportBody'); tbody.innerHTML = '';
-    let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
-    let customerMap = {};
-
-    historySales.forEach(sale => {
-        const name = (sale.customer || "散客").trim(); const phone = (sale.phone || "無").trim();
-        const key = name + "_" + phone; const amount = parseFloat(sale.finalAmount) || 0;
-        const saleDate = sale.closedDate || "未記";
-
-        if(!customerMap[key]) { customerMap[key] = { name: name, phone: phone, count: 0, totalSpent: 0, lastDate: saleDate }; }
-        customerMap[key].count += 1; customerMap[key].totalSpent += amount;
-        if(new Date(saleDate) > new Date(customerMap[key].lastDate)) customerMap[key].lastDate = saleDate;
+    
+    if(cloudCustomers.length === 0) { 
+        tbody.innerHTML = `<tr><td colspan="6" style="color:#999;text-align:center;padding:15px;">☁️ 雲端尚無客戶資料，或資料同步中...</td></tr>`; 
+        return; 
+    }
+    
+    cloudCustomers.forEach(c => {
+        tbody.innerHTML += `
+            <tr>
+                <td style="font-weight:bold;">👤 ${c.name}</td>
+                <td>📞 ${c.phone}</td>
+                <td>${c.count} 次</td>
+                <td style="color:#8e44ad; font-weight:bold;">$${(parseFloat(c.total) || 0).toLocaleString()}</td>
+                <td>📅 ${c.lastDate || '無紀錄'}</td>
+                <td>
+                    <button class="btn btn-sm" style="background:#8e44ad;" onclick="editCustomerData('${c.name}', '${c.phone}', ${c.count}, ${c.total})">✍️ 修改</button>
+                </td>
+            </tr>`;
     });
+}
 
-    let customerList = Object.values(customerMap);
-    if(customerList.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="color:#999;text-align:center;padding:15px;">暫無紀錄</td></tr>`; return; }
-    customerList.forEach(c => {
-        tbody.innerHTML += `<tr><td style="font-weight:bold;">👤 ${c.name}</td><td>📞 ${c.phone}</td><td>${c.count} 次</td><td style="color:#8e44ad; font-weight:bold;">$${c.totalSpent.toLocaleString()}</td><td>📅 ${c.lastDate}</td></tr>`;
-    });
+// 🟢 需求 1 的核心函式：點擊跳出視窗輸入手動修改數據並即時打 API 覆寫雲端
+async function editCustomerData(name, phone, currentCount, currentTotal) {
+    const newCount = prompt(`請輸入【${name}】的全新【消費次數】:`, currentCount);
+    if (newCount === null) return; // 使用者按取消
+    
+    const newTotal = prompt(`請輸入【${name}】的全新【消費總金額】:`, currentTotal);
+    if (newTotal === null) return; // 使用者按取消
+
+    const countParsed = parseInt(newCount);
+    const totalParsed = parseFloat(newTotal);
+
+    if (isNaN(countParsed) || isNaN(totalParsed)) {
+        alert("❌ 輸入格式不正確，請輸入純數字！");
+        return;
+    }
+
+    document.getElementById('syncStatus').innerText = `⚡ 正在手動修改 ${name} 的消費統計至雲端...`;
+
+    try {
+        const response = await fetch(CLOUD_API, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "updateCustomer",
+                customer: {
+                    name: name,
+                    phone: phone,
+                    count: countParsed,
+                    total: totalParsed
+                }
+            })
+        }).then(r => r.json());
+
+        if (response.status === "success") {
+            alert(`✨ 【${name}】的消費統計資料已成功手動覆寫至雲端試算表！`);
+            await fetchCloudData(); // 強制所有資料重抓更新
+        } else {
+            alert("雲端覆寫失敗：" + response.message);
+        }
+    } catch(e) {
+        alert("連線伺服器發生異常，請檢查網路連線。");
+    }
 }
 
 function calculateSalesStats() {
@@ -564,7 +616,15 @@ function renderHistoryLog() {
     });
 }
 
+// 🟢 同步優化機制：
+// 1. 當手機、平板、電腦的使用者「把網頁視窗切換回來」時，立刻同步最新雲端資料
 window.onfocus = function() { fetchCloudData(); };
+
+// 2. 新增定時輪詢：每 30 秒自動默默從雲端抓取一次，確保未重新整理的裝置也能即時同步
+setInterval(function() {
+    fetchCloudData();
+}, 30000); 
+
 window.onload = function() { 
     addItemCard('flower'); const today = new Date().toISOString().slice(0, 10);
     document.getElementById('inputDate').value = today; document.getElementById('stockDate').value = today; 
