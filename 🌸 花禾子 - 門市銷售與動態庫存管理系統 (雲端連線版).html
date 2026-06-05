@@ -1,723 +1,800 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌸 花禾子 - 門市銷售與動態庫存管理系統 (跨裝置同步優化版)</title>
-    <style>
-        :root {
-            --primary: #ffb6c1; --primary-dark: #ff91a4; --bg: #fff5f6; --text: #4a4a4a; --card-border: #ffe4e8; --flower-color: #d16174; --paper-color: #2c97de;
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-        .container { background: white; padding: 20px 15px; border-radius: 16px; box-shadow: 0 8px 24px rgba(255, 182, 193, 0.2); max-width: 800px; margin: 0 auto; }
-        h1 { color: #d16174; margin: 0 0 15px 0; font-size: 1.6em; text-align: center; }
-        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--card-border); flex-wrap: wrap; }
-        .tab { flex: 1; min-width: 80px; text-align: center; padding: 12px 2px; cursor: pointer; font-weight: bold; color: #888; font-size: 0.85em; }
-        .tab.active { color: #d16174; border-bottom: 3px solid var(--primary-dark); background-color: #fff0f2; border-radius: 8px 8px 0 0; }
-        .tab-content { display: none; } .tab-content.active { display: block; }
-        h2 { font-size: 1.2em; padding-left: 8px; margin: 25px 0 10px 0; }
-        h2.flower-title { color: var(--flower-color); border-left: 4px solid var(--primary-dark); }
-        h2.paper-title { color: var(--paper-color); border-left: 4px solid var(--paper-color); }
-        .card { border: 1px solid var(--card-border); padding: 15px; border-radius: 12px; margin-bottom: 15px; background: #fff; }
-        .form-group { margin-bottom: 10px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: #666; }
-        input, select, textarea { padding: 10px; border: 1px solid #ffccd5; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1em; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
-        .result-badge { background: #fff0f2; padding: 8px; border-radius: 6px; text-align: center; }
-        .result-badge .label { font-size: 0.8em; color: #888; } .result-badge .val { font-weight: bold; font-size: 1.05em; }
-        .result-badge .val.price { color: #b83b5e; font-size: 1.15em; }
-        .history-item { border-left: 4px solid #ffb6c1; padding-left: 10px; margin-bottom: 12px; background: #fafafa; padding: 10px; border-radius: 6px; }
-        .sales-dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        @media(min-width: 600px) { .sales-dashboard { grid-template-columns: repeat(5, 1fr); } }
-        .sales-card { background: #fff; border: 1px solid #ffccd5; padding: 12px 8px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(255,182,193,0.1); }
-        .sales-card .title { font-size: 0.8em; color: #666; font-weight: bold; margin-bottom: 5px; }
-        .sales-card .amt { font-size: 1.2em; font-weight: 900; color: #b83b5e; }
-        .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ffe4e8; }
-        .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
-        .report-table th, .report-table td { border: 1px solid #ffe4e8; padding: 8px; text-align: center; }
-        .report-table th { background-color: #fff0f2; color: #d16174; } .total-highlight { font-weight: bold; color: #b83b5e; background-color: #fff0f2; }
-        .sync-banner { background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 8px; font-size: 0.85em; text-align: center; margin-bottom: 15px; font-weight: bold; }
-        
-        .order-card { border: 2px solid #ff91a4; background: #fffdfd; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .order-header { display: flex; justify-content: space-between; font-weight: bold; color: #b83b5e; border-bottom: 1px solid #ffe4e8; padding-bottom: 6px; font-size: 0.95em; }
-        .order-details { font-size: 0.9em; background: #fff; padding: 10px; border-radius: 6px; margin: 10px 0; border: 1px dashed #ffccd5; }
-        .btn { background-color: #ff91a4; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1em; margin-top: 10px; }
-        .btn:hover { background-color: #ff788f; }
-        .btn-danger { background-color: #ffe4e8; color: #b83b5e; } .btn-paper { background-color: #ebf5fb; color: #2980b9; border: 1px solid #d4e6f1; }
-        .btn-sm { padding: 4px 8px; font-size: 0.8em; border-radius: 6px; width: auto; inline-size: max-content; margin: 0; }
-        .danger-zone { border: 2px dashed #e53e3e; background: #fff5f5; padding: 20px; border-radius: 12px; margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>花禾子門市銷售管理平台</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .loader { border-top-color: #ec4899; animation: spinner 1.5s linear infinite; }
+    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-<body>
+<body class="text-gray-800 antialiased">
 
-<div class="container">
-    <h1>🌸 花禾子 - 門市銷售與動態庫存管理系統 (跨裝置同步優化版)</h1>
-    <div class="sync-banner" id="syncStatus">⏳ 初始化雲端資料庫...</div>
+  <div id="loadingOverlay" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white font-medium">
+    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-14 w-14 mb-4"></div>
+    <p id="loadingText" class="text-lg">正在與花禾子雲端資料庫連線中...</p>
+  </div>
+
+  <header class="bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+          <i class="fa-solid fa-flower-tulip text-2xl text-pink-100"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-wide">花禾子 🌸</h1>
+          <p class="text-xs text-pink-100">門市銷售與客戶智慧管理系統</p>
+        </div>
+      </div>
+      <nav class="flex bg-white/10 p-1 rounded-xl backdrop-blur-sm">
+        <button onclick="switchTab('checkout')" id="btn-checkout" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 bg-white text-pink-600 shadow-sm">
+          <i class="fa-solid fa-cash-register"></i>門市收銀
+        </button>
+        <button onclick="switchTab('orders')" id="btn-orders" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 text-white hover:bg-white/10">
+          <i class="fa-solid fa-clock-history"></i>待審對帳
+        </button>
+        <button onclick="switchTab('customers')" id="btn-customers" class="nav-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 text-white hover:bg-white/10">
+          <i class="fa-solid fa-users text-pink-100"></i>客戶名冊
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
     
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('tab-input')">✍️ 進貨記帳</div>
-        <div class="tab" onclick="switchTab('tab-order')">🏪 待處理銷貨</div>
-        <div class="tab" onclick="switchTab('tab-stock')">📋 每日盤點</div>
-        <div class="tab" onclick="switchTab('tab-customer')">👤 客戶消費統計</div>
-        <div class="tab" onclick="switchTab('tab-history')">📅 財務與流水帳</div>
-        <div class="tab" onclick="switchTab('tab-maintenance')">⚙️ 系統上線</div>
-    </div>
-
-    <script>
-        // ======= 【請務必填入您的正確資訊】 =======
-        const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
-        const SPREADSHEET_ID = '1uVdZk4g4WDKgiOB76avI2Mt0Os8FNhrCSTg9dfZ5Q2w';
-        const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
-        // ==========================================
-    </script>
-
-    <div id="tab-input" class="tab-content active">
-        <div class="form-group"><label>📅 進貨日期：</label><input type="date" id="inputDate"></div>
-        <h2 class="flower-title">一、 花材進貨 (有預估損耗)</h2>
-        <div id="flowerItemsContainer"></div>
-        <button class="btn" style="background-color: #fce38a; color: #333;" onclick="addItemCard('flower')">＋ 新增花材品項</button>
+    <div id="tab-checkout" class="tab-content active">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <h2 class="paper-title" style="margin-top:20px;">二、 包材資材進貨 (不計損耗)</h2>
-        <div id="paperItemsContainer"></div>
-        <button class="btn btn-paper" onclick="addItemCard('paper')">＋ 新增包材品項</button>
-        <button class="btn" style="background-color: #95e1d3; margin-top: 30px; font-size:1.1em; padding:15px;" onclick="saveAllToCloudAndStock()">💾 儲存進貨（同步寫入試算表並更新雲端）</button>
-    </div>
+        <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 bg-pink-500 rounded-full"></span>現貨商品選購
+            </h2>
+            <button onclick="fetchCloudData()" class="text-sm text-pink-600 hover:text-pink-700 flex items-center gap-1 font-medium bg-pink-50 px-3 py-1.5 rounded-lg transition-colors">
+              <i class="fa-solid fa-rotate"></i> 刷新庫存
+            </button>
+          </div>
+          
+          <div class="mb-4">
+            <input type="text" id="productSearch" oninput="filterProducts()" placeholder="🔍 輸入關鍵字快速搜尋品項..." class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
+          </div>
 
-    <div id="tab-order" class="tab-content">
-        <h2 style="color: #e53e3e; border-left: 4px solid #e53e3e;">🏪 門市即時待處理銷貨單</h2>
-        <div id="pendingOrdersWorkflow"></div>
-    </div>
-
-    <div id="tab-stock" class="tab-content">
-        <div class="form-group"><label>📅 盤點日期：</label><input type="date" id="stockDate"></div>
-        <h2 class="flower-title">🌸 花材現貨盤點 (用來修正誤差值)</h2>
-        <div class="card"><div id="flowerStockContainer"></div></div>
-        <h2 class="paper-title">📦 包材資材盤點 (用來修正誤差值)</h2>
-        <div class="card" style="border-color:#d4e6f1;"><div id="paperStockContainer"></div></div>
-        <button class="btn" style="background-color: #a8dfbf; color: #27ae60; font-size:1.1em;" onclick="overrideStockFromAudit()">💾 覆蓋並儲存盤點數量（修正庫存誤差）</button>
-    </div>
-
-    <div id="tab-customer" class="tab-content">
-        <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">👤 門市客戶消費統計名冊 (雲端同步)</h2>
-        <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面數據即時同步自雲端試算表。可點擊「修改」按鈕手動調整客戶消費次數與總金額。</p>
-        
-        <div class="card" style="background: #fffdfd; border: 1px solid #e8d7f5;">
-            <h3 style="margin-top:0; color:#8e44ad; font-size:1.05em;">➕ 手動新增/註冊新客戶</h3>
-            <form id="customerForm" onsubmit="submitCustomerManual(event)">
-                <div class="grid-2">
-                    <div class="form-group"><label>客戶姓名</label><input type="text" id="custName" placeholder="例如：王小明" required></div>
-                    <div class="form-group"><label>電話號碼</label><input type="tel" id="custPhone" placeholder="例如：0912345678" required></div>
-                </div>
-                <div class="grid-2">
-                    <div class="form-group"><label>通訊地址</label><input type="text" id="custAddress" placeholder="可選填"></div>
-                    <div class="form-group"><label>加入日期</label><input type="date" id="custDate" required></div>
-                </div>
-                <button type="submit" class="btn" style="background-color: #8e44ad; margin-top:5px; padding:8px;">儲存新客戶資料</button>
-            </form>
+          <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[550px] overflow-y-auto pr-2">
+            <div class="text-center py-12 text-gray-400 col-span-2">庫存資料加載中...</div>
+          </div>
         </div>
 
-        <div class="card" style="background: #fbf9ff; border-color: #e8d7f5; overflow-x: auto;">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>客戶姓名</th>
-                        <th>電話號碼</th>
-                        <th>消費次數</th>
-                        <th style="color:#8e44ad;">消費金額統計</th>
-                        <th>上次消費日期</th>
-                        <th>手動操作</th>
-                    </tr>
-                </thead>
-                <tbody id="customerReportBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="tab-history" class="tab-content">
-        <h2 style="color: #27ae60; border-left: 4px solid #27ae60;">💰 門市銷售業績大盤</h2>
-        <div class="sales-dashboard">
-            <div class="sales-card"><div class="title">📅 每日銷售</div><div class="amt" id="statDaily">$0</div></div>
-            <div class="sales-card"><div class="title">📅 每週金額</div><div class="amt" id="statWeekly">$0</div></div>
-            <div class="sales-card"><div class="title">📅 每月金額</div><div class="amt" id="statMonthly">$0</div></div>
-            <div class="sales-card"><div class="title">📅 每季金額</div><div class="amt" id="statQuarterly">$0</div></div>
-            <div class="sales-card"><div class="title">🏆 年收入金額</div><div class="amt" id="statYearly">$0</div></div>
-        </div>
-
-        <h2 style="color: #b83b5e; border-left: 4px solid #b83b5e;">💰 每月進貨財務報表</h2>
-        <div class="card" style="background: #fffafb; border-color: #ffccd5; overflow-x: auto;">
-            <table class="report-table">
-                <thead><tr><th>月份區間</th><th>花材採購</th><th>包材採購</th><th class="total-highlight">當月總投入</th></tr></thead>
-                <tbody id="monthlyReportBody"></tbody>
-            </table>
-        </div>
-        
-        <h2>🔍 依品項單獨查詢時段均價</h2>
-        <div class="grid-2">
-            <div class="form-group"><label>選擇花材：</label><select id="searchFlowerSelect" onchange="renderAnalytics('flower')"></select></div>
-            <div class="form-group"><label>選擇包材：</label><select id="searchPaperSelect" onchange="renderAnalytics('paper')"></select></div>
-        </div>
-        <div id="analyticsResult"></div>
-        
-        <h2 class="flower-title" style="margin-top: 30px;">📜 歷史進貨流水帳</h2>
-        <div id="historyLogContainer"></div>
-    </div>
-
-    <div id="tab-maintenance" class="tab-content">
-        <h2 style="color: #7f8c8d; border-left: 4px solid #7f8c8d;">⚙️ 系統初始化與生產環境啟用</h2>
-        <div class="card">
-            <h3>📊 雲端即時連線核心狀態確認</h3>
-            <ul style="font-size:0.92em; line-height:1.8; color:#4a4a4a; padding-left:20px;">
-                <li>雲端同步掛單：<strong style="color:#e53e3e;" id="checkPendingCount">0</strong> 筆</li>
-                <li>本地進貨流水帳歷史：<strong style="color:#2c97de;" id="checkLedgerCount">0</strong> 條</li>
-            </ul>
-        </div>
-
-        <div class="danger-zone">
-            <h3 style="color:#c0392b; margin-top:0;">⚠️ 系統重置危險區</h3>
-            <p style="font-size:0.85em; color:#7f8c8d;">點擊下方按鈕將徹底清除本地緩存。若要清除 Google 試算表上的歷史紀錄，請直接手動刪除試算表儲存格內容。</p>
-            <button class="btn" style="background:#e53e3e; font-size:1.1em; padding:15px;" onclick="wipeTestDataAndGoLive()">🔥 清除全盤測試資料並啟動雲端環境</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let ledgerData = JSON.parse(localStorage.getItem('flowerLedgerDataV8')) || [];
-let currentStock = {};
-let pendingOrders = [];
-let cloudCustomers = []; 
-
-// 核心同步函式：從雲端獲取最新結構
-async function fetchCloudData() {
-    const isWiped = localStorage.getItem('flower_system_wiped_v8');
-    document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步待處理銷貨單、庫存與客戶名冊...';
-    try {
-        const cloudRes = await fetch(CLOUD_API).then(r => r.json());
-        currentStock = cloudRes.currentStock || {};
-        pendingOrders = cloudRes.pendingOrders || [];
-        cloudCustomers = cloudRes.customers || []; 
-        
-        if (document.getElementById('tab-customer').classList.contains('active')) {
-            renderCustomerStats();
-        }
-
-        if (isWiped === 'true' && ledgerData.length === 0) {
-            document.getElementById('syncStatus').innerText = '✨ 雲端連線就緒｜目前無進貨歷史紀錄';
-            return;
-        }
-
-        const urlSpreadsheet = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
-        const ssResponse = await fetch(urlSpreadsheet).then(r => r.json());
-        if (ssResponse.values && ssResponse.values.length > 1) {
-            let cloudLedger = [];
-            for (let i = 1; i < ssResponse.values.length; i++) {
-                const row = ssResponse.values[i]; if(row.length < 9) continue;
-                cloudLedger.push({
-                    id: row[0], type: row[1], date: row[2], name: row[3].trim(),
-                    totalQty: parseFloat(row[4])||0, totalCost: parseFloat(row[5])||0,
-                    lossQty: parseFloat(row[6])||0, singleCost: parseFloat(row[7])||0, sellPrice: parseFloat(row[8])||0
-                });
-            }
-            ledgerData = cloudLedger;
-            localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
-            localStorage.removeItem('flower_system_wiped_v8'); 
-        }
-        document.getElementById('syncStatus').innerText = '☁️ 跨店雲端資料同步完成！';
-    } catch (e) {
-        console.error(e);
-        document.getElementById('syncStatus').innerText = '⚠️ 雲端連線失敗，目前顯示離線暫存快照。';
-    }
-}
-
-function switchTab(tabId) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
-    if(tabId === 'tab-input') document.querySelectorAll('.tab')[0].classList.add('active');
-    if(tabId === 'tab-order') { document.querySelectorAll('.tab')[1].classList.add('active'); renderPendingOrders(); }
-    if(tabId === 'tab-stock') { document.querySelectorAll('.tab')[2].classList.add('active'); renderStockList(); }
-    if(tabId === 'tab-customer') { document.querySelectorAll('.tab')[3].classList.add('active'); renderCustomerStats(); }
-    if(tabId === 'tab-history') {
-        document.querySelectorAll('.tab')[4].classList.add('active');
-        calculateSalesStats(); updateSearchSelects(); renderMonthlyReport(); renderAnalytics('flower'); renderHistoryLog();
-    }
-    if(tabId === 'tab-maintenance') {
-        document.querySelectorAll('.tab')[5].classList.add('active');
-        renderMaintenanceInfo();
-    }
-    document.getElementById(tabId).classList.add('active');
-}
-
-function renderMaintenanceInfo() {
-    document.getElementById('checkPendingCount').innerText = pendingOrders.length;
-    document.getElementById('checkLedgerCount').innerText = ledgerData.length;
-}
-
-async function wipeTestDataAndGoLive() {
-    if(!confirm("確定要將本地與雲端暫存資料全部洗淨歸零嗎？")) return;
-    localStorage.setItem('flower_system_wiped_v8', 'true');
-    localStorage.removeItem('flowerLedgerDataV8');
-    localStorage.removeItem('flowerSalesHistoryV8');
-    
-    await fetch(CLOUD_API, {
-        method: "POST",
-        body: JSON.stringify({ action: "overrideStock", stock: {} })
-    });
-    
-    ledgerData = [];
-    currentStock = {};
-    pendingOrders = [];
-    cloudCustomers = [];
-    
-    alert("✨ 本地緩存已全數摧毀歸零！");
-    await fetchCloudData();
-    switchTab('tab-input');
-}
-
-function renderPendingOrders() {
-    const container = document.getElementById('pendingOrdersWorkflow');
-    if(pendingOrders.length === 0) {
-        container.innerHTML = `<p style="color:#999; text-align:center; padding:15px; background:#fafafa; border-radius:8px;">目前雲端沒有新送出的暫存訂單 ☕</p>`;
-        return;
-    }
-    container.innerHTML = '';
-    pendingOrders.forEach((order) => {
-        let itemsHtml = order.items.map(i => `• ${i.name} × ${i.qty}支 (小計:$${i.price * i.qty})`).join('<br>');
-        let pkgHint = order.needPackage ? `<span style="color:#e67e22; font-weight:bold;">[要包裝] 色系：${order.packageColor || '未填'}</span>` : '<span style="color:#999;">[無包裝需求]</span>';
-        let bagHint = order.needBag ? `<span style="color:#2c97de; font-weight:bold;"> [附透明袋]</span>` : '';
-
-        const fTotal = parseFloat(order.flowerTotal) || 0;
-        const pPrice = parseFloat(order.packagePrice) || 0;
-        const bPrice = parseFloat(order.bagPrice) || 0;
-
-        container.innerHTML += `
-            <div class="order-card">
-                <div class="order-header">
-                    <span>👤 客戶：${order.customer} (${order.phone})</span>
-                    <span>⏱️ ${order.time}</span>
-                </div>
-                <div class="order-details">
-                    <b>花材明細：</b><br>${itemsHtml}<br>
-                    <hr style="border:none; border-top:1px dashed #ffe4e8; margin:6px 0;">
-                    <b>外包裝與提袋需求：</b>${pkgHint}${bagHint}
-                </div>
-                <div class="grid-2">
-                    <div class="form-group"><label>🔧 修正外包裝費用 ($)：</label><input type="number" id="fee_${order.id}" value="${pPrice}" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice})"></div>
-                    <div class="form-group"><label>✂️ 輸入活動折抵 ($)：</label><input type="number" id="disc_${order.id}" value="0" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice})"></div>
-                </div>
-                
-                <div style="background:#fff0f2; padding:12px; border-radius:10px; font-size:0.92em; color:#555; line-height: 1.6; border: 1px dashed #ffccd5;">
-                    <div>1. 花材總計：$${fTotal} 元</div>
-                    <div>2. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span> 元</div>
-                    <div>3. 提袋費用：$${bPrice} 元</div>
-                    <div style="font-weight:bold; font-size:1.15em; color:#b83b5e; border-top: 1px solid #ffccd5; margin-top:6px; padding-top:6px;">
-                        4. 花束總計金額：$<span id="final_total_${order.id}">${fTotal + pPrice + bPrice}</span> 元
-                    </div>
-                </div>
-                
-                <div class="grid-2" style="margin-top:10px;">
-                    <button class="btn" style="background:#27ae60; margin:0;" onclick="approveOrder('${order.id}')">✅ 確認入帳</button>
-                    <button class="btn btn-danger" style="margin:0; background:#fadbd8;" onclick="deleteOrder('${order.id}')">🗑️ 捨棄退單</button>
-                </div>
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex-1">
+            <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-shopping-bag text-pink-500"></i>本次銷售清單
+            </h2>
+            <div id="cartItems" class="space-y-3 max-h-[280px] overflow-y-auto mb-4 pr-1">
+              <div class="text-center py-10 text-gray-400 text-sm">購物車是空的，請從左側點選商品</div>
             </div>
-        `;
-    });
-}
+            
+            <div class="border-t border-gray-100 pt-4 space-y-2 text-sm text-gray-600">
+              <div class="flex justify-between"><span>小計金額</span><span id="cartSubtotal" class="font-medium text-gray-900">$0</span></div>
+              <div class="flex justify-between items-center">
+                <span>折扣/折讓金額</span>
+                <input type="number" id="cartDiscount" value="0" min="0" oninput="calculateTotal()" class="w-20 px-2 py-1 text-right border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-500">
+              </div>
+              <div class="flex justify-between items-center text-base font-bold text-gray-900 pt-2 border-t border-dashed border-gray-100">
+                <span class="text-rose-600">應收總計</span>
+                <span id="cartTotal" class="text-xl text-rose-600">$0</span>
+              </div>
+            </div>
+          </div>
 
-function recalcOrderTotal(id, flowerTotal, bagTotal) {
-    const fee = parseFloat(document.getElementById(`fee_${id}`).value) || 0;
-    const disc = parseFloat(document.getElementById(`disc_${id}`).value) || 0;
-    document.getElementById(`lbl_review_pkg_${id}`).innerText = fee;
-    document.getElementById(`final_total_${id}`).innerText = Math.max(0, flowerTotal + fee + bagTotal - disc);
-}
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="text-sm font-bold text-gray-900 mb-4 tracking-wider uppercase">📄 結帳與建檔資訊</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">客戶姓名 *</label>
+                <div class="relative">
+                  <input type="text" id="orderCustomer" placeholder="請輸入姓名" class="w-full pl-3 pr-10 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 focus:outline-none">
+                  <button onclick="openCustomerSelectModal('checkout')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-pink-500 px-1" title="從名冊選擇"><i class="fa-solid fa-address-book"></i></button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">手機號碼 *</label>
+                <input type="tel" id="orderPhone" placeholder="例如: 0912345678" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">經手人 *</label>
+                <select id="orderHandler" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 focus:outline-none">
+                  </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">訂單備註 (選填)</label>
+                <input type="text" id="orderMemo" placeholder="例如：自取、預付、外送等額外說明" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 focus:outline-none">
+              </div>
+              
+              <button onclick="submitCheckout()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-medium py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2 mt-2 cursor-pointer">
+                <i class="fa-solid fa-paper-plane"></i> 提交待處理單（扣現貨庫存）
+              </button>
+            </div>
+          </div>
+        </div>
 
-// 【整合連動】點擊核銷確認入帳，同時寫入 Google 試算表之「銷貨紀錄」工作表
-async function approveOrder(orderId) {
-    document.getElementById('syncStatus').innerText = '⚡ 正在向雲端提交入帳核銷指令...';
-    try {
-        const finalAmt = parseFloat(document.getElementById(`final_total_${orderId}`).innerText) || 0;
-        let order = pendingOrders.find(o => o.id === orderId);
+      </div>
+    </div>
+
+    <div id="tab-orders" class="tab-content">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">現貨提報待審區</h2>
+            <p class="text-xs text-gray-500 mt-1">此處為門市已提交、尚未確認收到款項的單據。點擊確認入帳後將正式登記銷售流水帳並自動累計客戶金額。</p>
+          </div>
+          <span id="orderBadge" class="bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full text-xs border border-amber-200/50">共有 0 筆待對帳</span>
+        </div>
         
-        // 1. 先呼叫雲端核銷
-        await fetch(CLOUD_API, {
-            method: "POST",
-            body: JSON.stringify({ action: "approveOrder", orderId: orderId })
-        }).then(r => r.json());
+        <div class="overflow-x-auto rounded-xl border border-gray-100">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-100">
+                <th class="p-4">單號/日期</th>
+                <th class="p-4">客戶資訊</th>
+                <th class="p-4">購買品項與明細</th>
+                <th class="p-4 text-right">應收總計</th>
+                <th class="p-4 text-center">經手人</th>
+                <th class="p-4 text-center">操作指令</th>
+              </tr>
+            </thead>
+            <tbody id="orderTableBody" class="divide-y divide-gray-100 text-sm">
+              <tr><td colspan="6" class="p-8 text-center text-gray-400">尚無待處理訂單</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-customers" class="tab-content">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900">核心客戶名冊系統</h2>
+            <p class="text-xs text-gray-500 mt-1">即時同步雲端試算表「客戶名冊」。支援一鍵直接彈窗修改消費次數與金額統計。</p>
+          </div>
+          <button onclick="openAddCustomerModal()" class="bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-pink-600 shadow-sm transition-colors flex items-center gap-1 cursor-pointer">
+            <i class="fa-solid fa-user-plus"></i> 手動新增客戶
+          </button>
+        </div>
+
+        <div class="mb-4">
+          <input type="text" id="customerSearch" oninput="filterCustomers()" placeholder="🔍 輸入客戶姓名或電話快速篩選..." class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm">
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-gray-100">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-100">
+                <th class="p-4">客戶編號</th>
+                <th class="p-4">客戶姓名</th>
+                <th class="p-4">聯絡電話</th>
+                <th class="p-4">通訊地址</th>
+                <th class="p-4 text-center">歷史累計次數</th>
+                <th class="p-4 text-right">歷史累計金額</th>
+                <th class="p-4 text-center">上次消費日期</th>
+                <th class="p-4 text-center">數據調整</th>
+              </tr>
+            </thead>
+            <tbody id="customerTableBody" class="divide-y divide-gray-100 text-sm">
+              <tr><td colspan="8" class="p-8 text-center text-gray-400">客戶資料載入中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="editCustomerModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div class="bg-gradient-to-r from-pink-500 to-rose-500 p-4 text-white flex justify-between items-center">
+        <h3 class="font-bold flex items-center gap-1"><i class="fa-solid fa-user-pen"></i> 快速微調客戶數據</h3>
+        <button onclick="closeEditCustomerModal()" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">客戶姓名（唯讀）</label>
+          <input type="text" id="editCustName" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">聯絡電話（唯讀）</label>
+          <input type="text" id="editCustPhone" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">變更消費次數</label>
+            <input type="number" id="editCustCount" min="0" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">變更消費累計總額</label>
+            <input type="number" id="editCustTotal" min="0" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500">
+          </div>
+        </div>
+        <div class="bg-amber-50 text-amber-800 p-3 rounded-xl text-xs flex items-start gap-2 border border-amber-200/40">
+          <i class="fa-solid fa-circle-info mt-0.5 text-amber-600"></i>
+          <p>提示：此功能會直接「覆蓋」雲端試算表中該客戶的統計欄位，適用於門市特殊折讓退款或舊資料手動校正。</p>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button onclick="closeEditCustomerModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-2.5 rounded-xl text-sm transition-colors cursor-pointer">取消</button>
+          <button onclick="submitEditCustomer()" class="flex-1 bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-sm shadow-sm transition-colors cursor-pointer">確認修改並同步</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="addCustomerModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-xl overflow-hidden">
+      <div class="bg-gradient-to-r from-pink-500 to-rose-500 p-4 text-white flex justify-between items-center">
+        <h3 class="font-bold flex items-center gap-1"><i class="fa-solid fa-user-plus"></i> 新增全新客戶資料</h3>
+        <button onclick="closeAddCustomerModal()" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">客戶姓名 *</label>
+          <input type="text" id="newCustName" placeholder="請輸入完整姓名" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">電話號碼 *</label>
+          <input type="tel" id="newCustPhone" placeholder="例如: 0912345678" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1">通訊地址 (選填)</label>
+          <input type="text" id="newCustAddress" placeholder="請輸入通訊地址" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 focus:outline-none">
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button onclick="closeAddCustomerModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-2.5 rounded-xl text-sm transition-colors cursor-pointer">取消</button>
+          <button onclick="submitAddCustomer()" class="flex-1 bg-pink-500 hover:bg-pink-600 text-white font-medium py-2.5 rounded-xl text-sm shadow-sm transition-colors cursor-pointer">確認建檔</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="customerSelectModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div class="bg-gray-900 p-4 text-white flex justify-between items-center">
+        <h3 class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-address-book text-pink-400"></i> 選擇現有客戶</h3>
+        <button onclick="closeCustomerSelectModal()" class="text-white/80 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-4 border-b border-gray-100">
+        <input type="text" id="modalCustomerSearch" oninput="filterModalCustomers()" placeholder="🔍 輸入關鍵字快速過濾客戶..." class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/20">
+      </div>
+      <div id="modalCustomerList" class="overflow-y-auto p-2 divide-y divide-gray-50 flex-1">
+        </div>
+    </div>
+  </div>
+
+
+  <script>
+    // ======= 🌸 【核心參數：請填入您的 GAS 部署網址】 =======
+    const CLOUD_API = "https://script.google.com/macros/s/XXXXX/exec";
+    // =======================================================
+
+    // 經手人名單設定
+    const HANDLERS = ["書沅", "禮恩", "乾媽", "專專"];
+
+    // 全局快取狀態
+    let cloudStock = {};       // 雲端即時庫存
+    let cloudPendingOrders = []; // 雲端待審單
+    let cloudCustomers = [];   // 雲端客戶名冊
+    let cart = [];             // 門市收銀購物車
+
+    // 網頁載入初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      initHandlerSelect();
+      fetchCloudData();
+    });
+
+    // 初始化經手人下拉選單
+    function initHandlerSelect() {
+      const select = document.getElementById('orderHandler');
+      if (select) {
+        select.innerHTML = '<option value="">-- 請選擇門市經手人 --</option>' +
+          HANDLERS.map(h => `<option value="${h}">${h}</option>`).join('');
+      }
+    }
+
+    // 顯示/隱藏全網遮罩
+    function showLoading(text) {
+      document.getElementById('loadingText').innerText = text;
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+
+    // 核心資料獲取 (GET)
+    async function fetchCloudData() {
+      showLoading("同步花禾子雲端資料庫中...");
+      try {
+        const response = await fetch(CLOUD_API);
+        const data = await response.json();
         
-        // 2. 【整合新功能】將數據同步上傳寫入 Google 試算表的「銷貨紀錄」工作表
-        if (order) {
-            const todayStr = new Date().toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
-            const itemsNameSummary = order.items.map(i => `${i.name}(${i.qty})`).join(', ');
-            
-            const salesRecord = {
-                action: 'addSales',
-                row: [
-                    'TX' + orderId,                          // 單號
-                    todayStr,                                // 日期
-                    order.customer,                          // 客戶姓名
-                    itemsNameSummary,                        // 商品名稱明細
-                    order.items[0] ? order.items[0].price : 0, // 基準單價
-                    order.items.reduce((acc, i) => acc + i.qty, 0), // 總數量
-                    finalAmt,                                // 總金額
-                    `色系:${order.packageColor || '無'}. 提袋:${order.needBag ? '是':'否'}`, // 備註
-                    '門市系統'                                // 經手人
-                ]
-            };
-
-            // 發送到後端 GAS 進行表格添加
-            await fetch(CLOUD_API, {
-                method: 'POST',
-                body: JSON.stringify(salesRecord)
-            });
-
-            // 寫入本地歷史大盤統計快照
-            let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
-            order.finalAmount = finalAmt;
-            order.closedDate = todayStr;
-            order.closedTimestamp = Date.now();
-            historySales.push(order);
-            localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(historySales));
-        }
-
-        await fetchCloudData();
+        cloudStock = data.currentStock || {};
+        cloudPendingOrders = data.pendingOrders || [];
+        cloudCustomers = data.customers || [];
+        
+        renderProducts();
         renderPendingOrders();
-        alert(`🎉 雲端核銷入帳成功！資料已同步登載至「銷貨紀錄」工作表。`);
-    } catch(e) { 
-        console.error(e);
-        alert("核銷失敗，請檢查網路連線或試算表設定。"); 
+        renderCustomers();
+      } catch (err) {
+        alert("❌ 雲端連線失敗，請檢查網路或 GAS 部署設定。\n錯誤原因: " + err.message);
+      } finally {
+        hideLoading();
+      }
     }
-}
 
-async function deleteOrder(orderId) {
-    if(!confirm("確認要作廢退單嗎？")) return;
-    document.getElementById('syncStatus').innerText = '⚡ 正在發送退單指令...';
-    try {
-        await fetch(CLOUD_API, {
-            method: "POST",
-            body: JSON.stringify({ action: "deleteOrder", orderId: orderId })
-        }).then(r => r.json());
-        await fetchCloudData();
-        renderPendingOrders();
-        alert("🗑️ 訂單已取消，庫存回補完畢。");
-    } catch(e) { alert("退單失敗"); }
-}
+    // 頁籤切換控制
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => {
+        el.classList.remove('bg-white', 'text-pink-600', 'shadow-sm');
+        el.classList.add('text-white', 'hover:bg-white/10');
+      });
 
-async function saveAllToCloudAndStock() {
-    const inputDate = document.getElementById('inputDate').value;
-    const cards = document.querySelectorAll('#tab-input .card');
-    if(cards.length === 0) { alert("請先新增品項再儲存！"); return; }
-
-    document.getElementById('syncStatus').innerText = '⚡ 正在將新進貨寫入試算表並更新雲端庫存...';
-    localStorage.removeItem('flower_system_wiped_v8');
-
-    let rowsToUpload = [];
-
-    cards.forEach(card => {
-        const nameInput = card.querySelector('.p-name');
-        const totalQtyInput = card.querySelector('.p-totalQty');
-        const lossQtyInput = card.querySelector('.p-lossQty');
-        const totalCostInput = card.querySelector('.p-totalCost');
-        if (!nameInput) return;
-
-        const name = nameInput.value.trim();
-        const totalQty = parseFloat(totalQtyInput.value) || 0;
-        const lossQty = parseFloat(lossQtyInput.value) || 0;
-        const totalCost = parseFloat(totalCostInput.value) || 0;
-        const effectiveQty = totalQty - lossQty;
-
-        if(name && effectiveQty > 0) {
-            let oldStock = parseFloat(currentStock[name]) || 0;
-            currentStock[name] = oldStock + effectiveQty;
-            
-            const effCost = totalCost / effectiveQty;
-            const isFlower = lossQtyInput.type !== 'hidden';
-            const sellPrice = Math.round(effCost * 3);
-            
-            rowsToUpload.push([
-                'BATCH_' + Date.now() + Math.floor(Math.random()*10), 
-                isFlower ? 'flower' : 'paper',                       
-                inputDate,                                           
-                name,                                                
-                totalQty,                                            
-                totalCost,                                           
-                lossQty,                                             
-                effCost,                                             
-                sellPrice                                            
-            ]);
-
-            ledgerData.push({
-                id: 'LOCAL_' + Date.now(), type: isFlower ? 'flower' : 'paper', date: inputDate, name: name,
-                totalQty: totalQty, totalCost: totalCost, lossQty: lossQty, singleCost: effCost, sellPrice: sellPrice
-            });
-        }
-    });
-
-    localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
-
-    try {
-        const response = await fetch(CLOUD_API, {
-            method: "POST",
-            body: JSON.stringify({ 
-                action: "appendLedgerRows", 
-                rows: rowsToUpload,
-                stock: currentStock 
-            })
-        }).then(r => r.json());
-
-        if(response.status === "success") {
-            alert(`🚀 雲端進貨儲存成功！商品資料已確實寫入試算表。`);
-            document.getElementById('flowerItemsContainer').innerHTML = '';
-            document.getElementById('paperItemsContainer').innerHTML = '';
-            addItemCard('flower');
-            await fetchCloudData();
-        } else {
-            alert("雲端處理失敗: " + response.message);
-        }
-    } catch(e) { 
-        alert("發送雲端網路異常，請確認是否已更新 GAS 總部為最新版程式碼。"); 
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      const activeBtn = document.getElementById(`btn-${tabName}`);
+      activeBtn.classList.remove('text-white', 'hover:bg-white/10');
+      activeBtn.classList.add('bg-white', 'text-pink-600', 'shadow-sm');
     }
-}
 
-async function overrideStockFromAudit() { 
-    document.getElementById('syncStatus').innerText = '⚡ 正在將盤點數據複寫至雲端...';
-    document.querySelectorAll('.stock-qty-input').forEach(input => {
-        const name = input.getAttribute('data-name');
-        const auditValue = parseFloat(input.value);
-        currentStock[name] = isNaN(auditValue) ? 0 : auditValue;
-    }); 
-    try {
-        await fetch(CLOUD_API, {
-            method: "POST",
-            body: JSON.stringify({ action: "overrideStock", stock: currentStock })
-        }).then(r => r.json());
-        alert('📊 雲端庫存同步盤點修正完成！'); 
-        await fetchCloudData();
-    } catch(e) { alert("盤點修正失敗"); }
-}
-
-// 渲染雲端即時客戶資料
-function renderCustomerStats() {
-    const tbody = document.getElementById('customerReportBody'); tbody.innerHTML = '';
+    // ==========================================
+    // 收銀功能模組 (Checkout Logic)
+    // ==========================================
     
-    if(cloudCustomers.length === 0) { 
-        tbody.innerHTML = `<tr><td colspan="6" style="color:#999;text-align:center;padding:15px;">☁️ 雲端尚無客戶資料，或資料同步中...</td></tr>`; 
-        return; 
-    }
-    
-    cloudCustomers.forEach(c => {
-        tbody.innerHTML += `
-            <tr>
-                <td style="font-weight:bold;">👤 ${c.name}</td>
-                <td>📞 ${c.phone}</td>
-                <td>${c.count} 次</td>
-                <td style="color:#8e44ad; font-weight:bold;">$${(parseFloat(c.total) || 0).toLocaleString()}</td>
-                <td>📅 ${c.lastDate || '無紀錄'}</td>
-                <td>
-                    <button class="btn btn-sm" style="background:#8e44ad;" onclick="editCustomerData('${c.name}', '${c.phone}', ${c.count}, ${c.total})">✍️ 修改</button>
-                </td>
-            </tr>`;
-    });
-}
-
-// 【新整合】手動提交新客戶表單至 Google 試算表（客戶名冊）
-async function submitCustomerManual(e) {
-    e.preventDefault();
-    document.getElementById('syncStatus').innerText = '⚡ 正在發送新客戶註冊資料至雲端...';
-    
-    const autoId = 'CUST' + Date.now().toString().slice(-6);
-    const cName = document.getElementById('custName').value.trim();
-    const cPhone = document.getElementById('custPhone').value.trim();
-    const cAddress = document.getElementById('custAddress').value.trim();
-    const cDate = document.getElementById('custDate').value;
-
-    const formData = {
-        action: 'addCustomer',
-        row: [ autoId, cName, cPhone, cAddress, cDate ]
-    };
-
-    try {
-        const response = await fetch(CLOUD_API, {
-            method: 'POST',
-            body: JSON.stringify(formData)
-        }).then(res => res.json());
-
-        if(response.status === 'success') {
-            alert('✨ 客戶名冊資料建立成功！已同步發送寫入雲端。');
-            document.getElementById('customerForm').reset();
-            document.getElementById('custDate').valueAsDate = new Date();
-            await fetchCloudData(); // 重新整理列表
-        } else {
-            alert('建立失敗：' + response.message);
-        }
-    } catch(err) {
-        console.error(err);
-        alert('連線失敗，請檢查網路連線。');
-    }
-}
-
-// 點擊彈出視窗手動修改雲端客戶統計
-async function editCustomerData(name, phone, currentCount, currentTotal) {
-    const newCount = prompt(`請輸入【${name}】的全新【消費次數】:`, currentCount);
-    if (newCount === null) return; 
-    
-    const newTotal = prompt(`請輸入【${name}】的全新【消費總金額】:`, currentTotal);
-    if (newTotal === null) return; 
-
-    const countParsed = parseInt(newCount);
-    const totalParsed = parseFloat(newTotal);
-
-    if (isNaN(countParsed) || isNaN(totalParsed)) {
-        alert("❌ 輸入格式不正確，請輸入純數字！");
+    // 渲染商品庫存格
+    function renderProducts() {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+      
+      const items = Object.keys(cloudStock);
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="text-center py-12 text-gray-400 col-span-2">目前雲端沒有建立任何商品資料。</div>';
         return;
+      }
+      
+      items.forEach(name => {
+        const stockQty = cloudStock[name];
+        // 預設常見零售價，若有特定品項亦可在此手動擴充比對
+        let defaultPrice = 150;
+        if(name.includes('大')) defaultPrice = 250;
+        if(name.includes('中')) defaultPrice = 180;
+
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border transition-all flex flex-col justify-between ${stockQty <= 0 ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-white border-gray-100 hover:border-pink-200 hover:shadow-xs'}`;
+        card.dataset.name = name;
+        
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start gap-1">
+              <h4 class="font-bold text-gray-900 text-sm sm:text-base">${name}</h4>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-md ${stockQty <= 3 ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-green-50 text-green-700'}">現貨: ${stockQty}</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">建議單價: $${defaultPrice}</p>
+          </div>
+          <div class="mt-4 flex items-center justify-between gap-2">
+            <div class="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+              <button onclick="adjustGridQty('${name}', -1)" class="px-2.5 py-1 text-gray-500 hover:bg-gray-100 text-xs font-bold rounded-l-lg">-</button>
+              <input type="number" id="grid-qty-${name}" value="1" min="1" max="${Math.max(1, stockQty)}" class="w-10 text-center bg-transparent text-xs font-medium focus:outline-none">
+              <button onclick="adjustGridQty('${name}', 1)" class="px-2.5 py-1 text-gray-500 hover:bg-gray-100 text-xs font-bold rounded-r-lg">+</button>
+            </div>
+            <button onclick="addToCart('${name}', ${defaultPrice})" ${stockQty <= 0 ? 'disabled' : ''} class="bg-pink-500 text-white text-xs font-medium px-3 py-2 rounded-lg hover:bg-pink-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1">
+              <i class="fa-solid fa-cart-plus"></i> 加購物車
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
     }
 
-    document.getElementById('syncStatus').innerText = `⚡ 正在手動修改 ${name} 的消費統計至雲端...`;
+    function adjustGridQty(name, delta) {
+      const input = document.getElementById(`grid-qty-${name}`);
+      if(input) {
+        let val = parseInt(input.value) || 1;
+        val += delta;
+        if(val < 1) val = 1;
+        input.value = val;
+      }
+    }
 
-    try {
+    function filterProducts() {
+      const keyword = document.getElementById('productSearch').value.toLowerCase();
+      document.querySelectorAll('#productGrid > div').forEach(card => {
+        const name = card.dataset.name ? card.dataset.name.toLowerCase() : '';
+        if(name.includes(keyword)) card.classList.remove('hidden');
+        else card.classList.add('hidden');
+      });
+    }
+
+    // 購物車核心邏輯
+    function addToCart(name, price) {
+      const qtyInput = document.getElementById(`grid-qty-${name}`);
+      const buyQty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+      
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.qty += buyQty;
+      } else {
+        cart.push({ name, price, qty: buyQty });
+      }
+      if(qtyInput) qtyInput.value = 1; // 復原為 1
+      renderCart();
+    }
+
+    function updateCartQty(index, newQty) {
+      if(newQty <= 0) {
+        cart.splice(index, 1);
+      } else {
+        cart[index].qty = parseInt(newQty) || 1;
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cartItems');
+      if (cart.length === 0) {
+        container.innerHTML = '<div class="text-center py-10 text-gray-400 text-sm">購物車是空的，請從左側點選商品</div>';
+        calculateTotal();
+        return;
+      }
+      
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl text-xs sm:text-sm border border-gray-100">
+          <div class="flex-1 min-w-0 pr-2">
+            <p class="font-bold text-gray-900 truncate">${item.name}</p>
+            <p class="text-gray-400 text-xs mt-0.5">$${item.price} × ${item.qty} = <span class="font-medium text-gray-700">$${item.price * item.qty}</span></p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="number" value="${item.qty}" min="0" onchange="updateCartQty(${idx}, this.value)" class="w-12 px-1.5 py-1 text-center border border-gray-200 rounded-lg bg-white focus:outline-none">
+            <button onclick="updateCartQty(${idx}, 0)" class="text-gray-400 hover:text-rose-500 p-1"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('');
+      
+      calculateTotal();
+    }
+
+    function calculateTotal() {
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const discount = parseFloat(document.getElementById('cartDiscount').value) || 0;
+      const total = Math.max(0, subtotal - discount);
+      
+      document.getElementById('cartSubtotal').innerText = `$${subtotal}`;
+      document.getElementById('cartTotal').innerText = `$${total}`;
+    }
+
+    // 提交收銀待審單
+    async function submitCheckout() {
+      if (cart.length === 0) return alert("❌ 購物車內沒有任何品項！");
+      
+      const customer = document.getElementById('orderCustomer').value.trim();
+      const phone = document.getElementById('orderPhone').value.trim();
+      const handler = document.getElementById('orderHandler').value;
+      const memo = document.getElementById('orderMemo').value.trim();
+      const discount = parseFloat(document.getElementById('cartDiscount').value) || 0;
+      
+      if (!customer || !phone || !handler) {
+        return alert("❌ 請務必填寫：客戶姓名、手機號碼 以及 門市經手人！");
+      }
+      
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const finalTotal = Math.max(0, subtotal - discount);
+      const orderId = 'ORD' + Date.now().toString().slice(-6);
+      
+      const newOrder = {
+        id: orderId,
+        date: new Date().toLocaleDateString('zh-TW', {year:'numeric', month:'2-digit', day:'2-digit'}).replace(/\//g, '-'),
+        customer,
+        phone,
+        items: cart,
+        discount,
+        finalTotal,
+        handler,
+        memo: memo || "門市收銀提報"
+      };
+
+      showLoading("正在提交待處理訂單並扣減庫存...");
+      try {
         const response = await fetch(CLOUD_API, {
-            method: "POST",
-            body: JSON.stringify({
-                action: "updateCustomer",
-                customer: {
-                    name: name,
-                    phone: phone,
-                    count: countParsed,
-                    total: totalParsed
-                }
-            })
-        }).then(r => r.json());
-
-        if (response.status === "success") {
-            alert(`✨ 【${name}】的消費統計資料已成功手動覆寫至雲端試算表！`);
-            await fetchCloudData(); 
+          method: "POST",
+          body: JSON.stringify({ action: "submitOrder", order: newOrder })
+        });
+        const resObj = await response.json();
+        if(resObj.status === "success") {
+          alert("🎉 訂單提報成功！已移至『待審對帳』區並預扣庫存。");
+          // 重設收銀台
+          cart = [];
+          document.getElementById('orderCustomer').value = '';
+          document.getElementById('orderPhone').value = '';
+          document.getElementById('orderMemo').value = '';
+          document.getElementById('cartDiscount').value = '0';
+          renderCart();
+          await fetchCloudData(); // 刷新同步
         } else {
-            alert("雲端覆寫失敗：" + response.message);
+          alert("❌ 提交失敗: " + resObj.message);
         }
-    } catch(e) {
-        alert("連線伺服器發生異常，請檢查網路連線。");
+      } catch(e) {
+        alert("❌ 網路異常，無法連接後端: " + e.message);
+      } finally {
+        hideLoading();
+      }
     }
-}
 
-function calculateSalesStats() {
-    let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
-    const now = new Date(); const todayStr = now.toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
-    let daily = 0, weekly = 0, monthly = 0, quarterly = 0, yearly = 0;
-    const oneDayMs = 24 * 60 * 60 * 1000; const nowTs = now.getTime();
+    // ==========================================
+    // 待審對帳管理區 (Pending Orders Logic)
+    // ==========================================
+    function renderPendingOrders() {
+      const tbody = document.getElementById('orderTableBody');
+      document.getElementById('orderBadge').innerText = `共有 ${cloudPendingOrders.length} 筆待對帳`;
+      
+      if (cloudPendingOrders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">👌 暫時沒有待對帳的提報單據</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = cloudPendingOrders.map(order => {
+        const itemDetails = order.items.map(i => `• ${i.name} × ${i.qty}`).join('<br>');
+        const memoStr = order.memo ? `<div class="text-xs text-rose-500 mt-1 bg-rose-50 px-2 py-0.5 rounded-md inline-block">註: ${order.memo}</div>` : '';
+        
+        return `
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="p-4 font-medium text-gray-900">${order.id}<br><span class="text-xs text-gray-400">${order.date}</span></td>
+            <td class="p-4"><strong>${order.customer}</strong><br><span class="text-xs text-gray-500">${order.phone}</span></td>
+            <td class="p-4 text-xs text-gray-600 font-mono">${itemDetails}${memoStr}</td>
+            <td class="p-4 text-right font-bold text-rose-600 text-base">$${order.finalTotal}</td>
+            <td class="p-4 text-center"><span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md text-xs font-medium">${order.handler}</span></td>
+            <td class="p-4 text-center">
+              <div class="flex justify-center gap-2">
+                <button onclick="approveOrder('${order.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-2xs transition-colors flex items-center gap-1 cursor-pointer">
+                  <i class="fa-solid fa-circle-check"></i> ✅ 確認入帳
+                </button>
+                <button onclick="deleteOrder('${order.id}')" class="bg-white hover:bg-gray-50 text-gray-400 hover:text-rose-500 text-xs font-medium px-2 py-1.5 rounded-lg border border-gray-200 transition-colors cursor-pointer" title="退回/刪除單據">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
 
-    historySales.forEach(sale => {
-        const amt = parseFloat(sale.finalAmount) || 0; const saleTs = sale.closedTimestamp || Date.now();
-        const saleDateStr = sale.closedDate; const diffDays = (nowTs - saleTs) / oneDayMs;
-        if(saleDateStr === todayStr) daily += amt; 
-        if(diffDays <= 7) weekly += amt; if(diffDays <= 30) monthly += amt;
-        if(diffDays <= 90) quarterly += amt; if(diffDays <= 365) yearly += amt;
-    });
-    document.getElementById('statDaily').innerText = `$${daily.toLocaleString()}`;
-    document.getElementById('statWeekly').innerText = `$${weekly.toLocaleString()}`;
-    document.getElementById('statMonthly').innerText = `$${monthly.toLocaleString()}`;
-    document.getElementById('statQuarterly').innerText = `$${quarterly.toLocaleString()}`;
-    document.getElementById('statYearly').innerText = `$${yearly.toLocaleString()}`;
-}
+    // 🌸 重點功能 1：點擊「確認入帳」時，同時驅動銷貨紀錄與客戶累計
+    async function approveOrder(orderId) {
+      const order = cloudPendingOrders.find(o => o.id === orderId);
+      if(!order) return;
+      
+      if(!confirm(`確認收到【${order.customer}】的款項 $${order.finalTotal} 且無誤嗎？\n確認後將正式寫入試算表流水帳。`)) return;
+      
+      showLoading("正在將交易正式寫入銷貨紀錄與更新客資...");
+      try {
+        // 第一步：呼叫加總與扣帳主程式 (更新待審與客戶名冊累計)
+        const res1 = await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({ action: "approveOrder", orderId: orderId })
+        });
+        const obj1 = await res1.json();
+        
+        if(obj1.status === "success") {
+          // 第二步：同步寫入「銷貨紀錄」試算表流水帳
+          // 對應欄位格式: ["單號", "日期", "客戶姓名", "商品名稱", "單價", "數量", "總金額", "備註", "經手人"]
+          for(let item of order.items) {
+            await fetch(CLOUD_API, {
+              method: "POST",
+              body: JSON.stringify({
+                action: "addSales",
+                row: [order.id, order.date, order.customer, item.name, item.price, item.qty, item.price * item.qty, order.memo, order.handler]
+              })
+            });
+          }
+          
+          alert("✨ 帳目入帳完畢！銷貨紀錄已更新，客戶累計數據已自動加總。");
+          await fetchCloudData();
+        } else {
+          alert("❌ 對帳失敗: " + obj1.message);
+        }
+      } catch(e) {
+        alert("❌ 寫入過程中發生網路錯誤: " + e.message);
+      } finally {
+        hideLoading();
+      }
+    }
 
-function addItemCard(type) {
-    const container = document.getElementById(type === 'flower' ? 'flowerItemsContainer' : 'paperItemsContainer');
-    const cardId = 'card_' + Date.now() + Math.floor(Math.random()*10);
-    const card = document.createElement('div'); card.className = 'card'; card.id = cardId;
-    const lossHtml = type === 'flower' ? `<div class="form-group"><label style="color:var(--flower-color);">⚠️ 預估損耗數量 (支)：</label><input type="number" class="p-lossQty" value="2" oninput="uiCalculate('${cardId}')"></div>` : `<input type="hidden" class="p-lossQty" value="0">`;
-    
-    card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>${type==='flower'?'🌸 花材':'📦 包材'}</span><button class="btn btn-danger" style="width:auto; margin:0; padding:2px 6px; font-size:0.8em;" onclick="document.getElementById('${cardId}').remove()">移除</button></div>
-        <div class="form-group"><label>品項名稱：</label><input type="text" class="p-name" value="${type==='flower'?'紅玫瑰':'霧面紙'}"></div>
-        <div class="grid-2">
-            <div class="form-group"><label>數量：</label><input type="number" class="p-totalQty" value="20" oninput="uiCalculate('${cardId}')"></div>
-            <div class="form-group"><label>進價：</label><input type="number" class="p-totalCost" value="600" oninput="uiCalculate('${cardId}')"></div>
+    async function deleteOrder(orderId) {
+      if(!confirm("確定要退回此筆單據嗎？退回後預扣的現貨庫存將自動補回。")) return;
+      showLoading("正在退單並還原庫存中...");
+      try {
+        const response = await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({ action: "deleteOrder", orderId })
+        });
+        const resObj = await response.json();
+        if(resObj.status === "success") {
+          alert("已成功退單，現貨庫存已校正補回。");
+          await fetchCloudData();
+        }
+      } catch(e) { alert("錯誤: " + e.message); }
+      finally { hideLoading(); }
+    }
+
+    // ==========================================
+    // 客戶名冊管理模組 (Customers Logic)
+    // ==========================================
+    function renderCustomers() {
+      const tbody = document.getElementById('customerTableBody');
+      if (cloudCustomers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400">名冊空空如也，快手動新增或開始收銀吧！</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = cloudCustomers.map(c => `
+        <tr class="hover:bg-gray-50 transition-colors" data-cust-name="${c.name}" data-cust-phone="${c.phone}">
+          <td class="p-4 font-mono text-xs text-gray-400">${c.id || 'N/A'}</td>
+          <td class="p-4 font-bold text-gray-900">${c.name}</td>
+          <td class="p-4 font-mono text-gray-600">${c.phone}</td>
+          <td class="p-4 text-xs text-gray-500 max-w-[180px] truncate" title="${c.address}">${c.address || '—'}</td>
+          <td class="p-4 text-center font-medium text-blue-600">${c.count} 次</td>
+          <td class="p-4 text-right font-bold text-emerald-600">$${c.total}</td>
+          <td class="p-4 text-center text-xs text-gray-400">${c.lastDate || '—'}</td>
+          <td class="p-4 text-center">
+            <button onclick="openEditCustomerModal('${c.name}', '${c.phone}', ${c.count}, ${c.total})" class="text-pink-500 hover:text-pink-700 bg-pink-50 hover:bg-pink-100 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer">
+              <i class="fa-solid fa-user-gear"></i> 調整數據
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterCustomers() {
+      const kw = document.getElementById('customerSearch').value.toLowerCase();
+      document.querySelectorAll('#customerTableBody > tr').forEach(row => {
+        const name = row.dataset.custName ? row.dataset.custName.toLowerCase() : '';
+        const phone = row.dataset.custPhone ? row.dataset.custPhone : '';
+        if(name.includes(kw) || phone.includes(kw)) row.classList.remove('hidden');
+        else row.classList.add('hidden');
+      });
+    }
+
+    // 🌸 重點功能 2：手動新增客戶與同步寫入試算表
+    function openAddCustomerModal() {
+      document.getElementById('newCustName').value = '';
+      document.getElementById('newCustPhone').value = '';
+      document.getElementById('newCustAddress').value = '';
+      document.getElementById('addCustomerModal').classList.remove('hidden');
+    }
+    function closeAddCustomerModal() {
+      document.getElementById('addCustomerModal').classList.add('hidden');
+    }
+
+    async function submitAddCustomer() {
+      const name = document.getElementById('newCustName').value.trim();
+      const phone = document.getElementById('newCustPhone').value.trim();
+      const address = document.getElementById('newCustAddress').value.trim();
+      
+      if(!name || !phone) return alert("❌ 姓名與電話為必填欄位！");
+      
+      const autoId = 'CUST' + Date.now().toString().slice(-6);
+      const todayStr = new Date().toLocaleDateString('zh-TW', {year:'numeric', month:'2-digit', day:'2-digit'}).replace(/\//g, '-');
+      
+      showLoading("正在將新客戶建檔至雲端名冊...");
+      try {
+        const response = await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "addCustomer",
+            row: [autoId, name, phone, address || "手動註冊新客", todayStr]
+          })
+        });
+        const resObj = await response.json();
+        if(resObj.status === "success") {
+          alert(`🎉 客戶【${name}】已成功手動註冊加入名冊！`);
+          closeAddCustomerModal();
+          await fetchCloudData();
+        } else {
+          alert("❌ 新增失敗: " + resObj.message);
+        }
+      } catch(e) {
+        alert("網路通訊錯誤: " + e.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // 快速彈窗修改客資統計
+    function openEditCustomerModal(name, phone, count, total) {
+      document.getElementById('editCustName').value = name;
+      document.getElementById('editCustPhone').value = phone;
+      document.getElementById('editCustCount').value = count;
+      document.getElementById('editCustTotal').value = total;
+      document.getElementById('editCustomerModal').classList.remove('hidden');
+    }
+    function closeEditCustomerModal() {
+      document.getElementById('editCustomerModal').classList.add('hidden');
+    }
+
+    async function submitEditCustomer() {
+      const name = document.getElementById('editCustName').value;
+      const phone = document.getElementById('editCustPhone').value;
+      const count = parseInt(document.getElementById('editCustCount').value) || 0;
+      const total = parseFloat(document.getElementById('editCustTotal').value) || 0;
+      
+      showLoading("正在直接覆寫雲端客戶指標數據...");
+      try {
+        const response = await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "updateCustomer",
+            customer: { name, phone, count, total }
+          })
+        });
+        const resObj = await response.json();
+        if(resObj.status === "success") {
+          alert("👍 數據修改成功！");
+          closeEditCustomerModal();
+          await fetchCloudData();
+        }
+      } catch(e) { alert("連線失敗: " + e.message); }
+      finally { hideLoading(); }
+    }
+
+    // ==========================================
+    // 快捷從客戶名冊挑選聯動收銀台
+    // ==========================================
+    let activeSelectTarget = 'checkout';
+    function openCustomerSelectModal(target) {
+      activeSelectTarget = target;
+      document.getElementById('modalCustomerSearch').value = '';
+      renderModalCustomerList();
+      document.getElementById('customerSelectModal').classList.remove('hidden');
+    }
+    function closeCustomerSelectModal() {
+      document.getElementById('customerSelectModal').classList.add('hidden');
+    }
+
+    function renderModalCustomerList() {
+      const listDiv = document.getElementById('modalCustomerList');
+      if(cloudCustomers.length === 0) {
+        listDiv.innerHTML = '<p class="text-center text-gray-400 py-6 text-xs">目前名冊內尚無客戶資料</p>';
+        return;
+      }
+      listDiv.innerHTML = cloudCustomers.map(c => `
+        <div onclick="selectThisCustomer('${c.name}', '${c.phone}')" class="p-3 hover:bg-pink-50/50 transition-colors cursor-pointer flex justify-between items-center text-sm" data-modal-name="${c.name.toLowerCase()}" data-modal-phone="${c.phone}">
+          <div>
+            <span class="font-bold text-gray-900">${c.name}</span>
+            <span class="text-xs text-gray-400 ml-2 font-mono">${c.phone}</span>
+          </div>
+          <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">累計 $${c.total}</span>
         </div>
-        ${lossHtml}
-        <div class="grid-2" style="margin-top:10px;">
-            <div class="result-badge"><div class="label">有效單支成本</div><div class="val">$<span class="lbl-cost">0.0</span></div></div>
-            <div class="result-badge"><div class="label">建議零售價(3倍)</div><div class="val price">$<span class="lbl-price">0</span></div></div>
-        </div>
-    `;
-    container.appendChild(card); uiCalculate(cardId);
-}
+      `).join('');
+    }
 
-function uiCalculate(cardId) {
-    const card = document.getElementById(cardId); if(!card) return;
-    const tQ = parseFloat(card.querySelector('.p-totalQty').value)||0; 
-    const tC = parseFloat(card.querySelector('.p-totalCost').value)||0; 
-    const lQ = parseFloat(card.querySelector('.p-lossQty').value)||0;
-    const eff = tQ - lQ; const cost = eff > 0 ? (tC / eff) : 0;
-    card.querySelector('.lbl-cost').innerText = cost.toFixed(1); 
-    card.querySelector('.lbl-price').innerText = Math.round(cost*3);
-}
+    function filterModalCustomers() {
+      const kw = document.getElementById('modalCustomerSearch').value.toLowerCase();
+      document.querySelectorAll('#modalCustomerList > div').forEach(div => {
+        const name = div.dataset.modalName || '';
+        const phone = div.dataset.modalPhone || '';
+        if(name.includes(kw) || phone.includes(kw)) div.classList.remove('hidden');
+        else div.classList.add('hidden');
+      });
+    }
 
-function renderMonthlyReport() {
-    const tbody = document.getElementById('monthlyReportBody'); tbody.innerHTML = ''; let reportMap = {};
-    ledgerData.forEach(item => { 
-        if(!item.date) return; const ym = item.date.substr(0, 7); 
-        if(!reportMap[ym]) reportMap[ym] = { flower: 0, paper: 0 }; 
-        if(item.type === 'flower') reportMap[ym].flower += parseFloat(item.totalCost) || 0; 
-        if(item.type === 'paper') reportMap[ym].paper += parseFloat(item.totalCost) || 0; 
-    });
-    Object.keys(reportMap).sort((a,b)=>b.localeCompare(a)).forEach(ym => { 
-        tbody.innerHTML += `<tr><td style="font-weight:bold;">📅 ${ym}</td><td style="color:var(--flower-color);font-weight:bold;">$${reportMap[ym].flower.toLocaleString()}</td><td style="color:var(--paper-color);font-weight:bold;">$${reportMap[ym].paper.toLocaleString()}</td><td class="total-highlight">$${(reportMap[ym].flower+reportMap[ym].paper).toLocaleString()}</td></tr>`; 
-    });
-}
-
-function renderStockList() {
-    const f = document.getElementById('flowerStockContainer'); f.innerHTML = ''; const p = document.getElementById('paperStockContainer'); p.innerHTML = '';
-    let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))]; 
-    let pNames = [...new Set(ledgerData.filter(i => i.type === 'paper').map(i => i.name))];
-    Object.keys(currentStock).forEach(name => { if (!ledgerData.some(i => i.name === name)) fNames.push(name); });
-    fNames = [...new Set(fNames)]; pNames = [...new Set(pNames)];
-    if(fNames.length === 0) f.innerHTML = '<p style="color:#999;font-size:0.9em;text-align:center;">暫無商品品項資料</p>';
-    if(pNames.length === 0) p.innerHTML = '<p style="color:#999;font-size:0.9em;text-align:center;">暫無商品品項資料</p>';
-    fNames.forEach(n => { if(n) f.appendChild(createStockRow(n)) }); pNames.forEach(n => { if(n) p.appendChild(createStockRow(n)) });
-}
-
-function createStockRow(name) { 
-    const qty = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0; 
-    const div = document.createElement('div'); div.className = 'stock-row'; 
-    div.innerHTML = `<span>${name}</span><input type="number" class="stock-qty-input" data-name="${name}" value="${qty}" style="width:80px; text-align:center;">`; 
-    return div; 
-}
-
-function updateSearchSelects() {
-    const f = document.getElementById('searchFlowerSelect'); f.innerHTML = ''; const p = document.getElementById('searchPaperSelect'); p.innerHTML = '';
-    let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))]; 
-    let pNames = [...new Set(ledgerData.filter(i => i.type === 'paper').map(i => i.name))];
-    if(fNames.length === 0) fNames = Object.keys(currentStock);
-    fNames.forEach(n => f.appendChild(Object.assign(document.createElement('option'), {value: n, text: n}))); 
-    pNames.forEach(n => p.appendChild(Object.assign(document.createElement('option'), {value: n, text: n}))); 
-}
-
-function renderAnalytics(type) {
-    const selectId = type === 'flower' ? 'searchFlowerSelect' : 'searchPaperSelect'; const name = document.getElementById(selectId)?.value;
-    const container = document.getElementById('analyticsResult'); if(!name) { container.innerHTML='<p style="color:#999; padding: 10px;">無選取商品</p>'; return;}
-    const filtered = ledgerData.filter(i => i.name === name).sort((a,b) => a.date.localeCompare(b.date)); 
-    const cCost = filtered.length > 0 ? parseFloat(filtered[filtered.length - 1].singleCost || 0) : 0;
-    const stockCount = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
-    container.innerHTML = `<div class="card" style="margin-top:10px;"><h3>📊 ${name} (雲端庫存: ${stockCount})</h3><div class="grid-2"><div class="result-badge"><div class="label">最新有效成本</div><div>$${cCost.toFixed(1)}</div></div><div class="result-badge" style="background:#fff0f2;"><div class="label">建議零售價</div><div style="color:#b83b5e; font-weight:bold;">$${Math.round(cCost*3)}</div></div></div></div>`;
-}
-
-function renderHistoryLog() {
-    const container = document.getElementById('historyLogContainer'); container.innerHTML = ''; 
-    if(ledgerData.length===0) { container.innerHTML = '<p style="color:#999;text-align:center;">尚無流水帳資料</p>'; return; }
-    [...ledgerData].sort((a,b)=>b.date.localeCompare(a.date)).forEach(item => { 
-        container.innerHTML += `<div class="history-item"><b>📅 ${item.date} [${item.type==='flower'?'花材':'包材'}] ${item.name}</b><br>進貨成本: $${parseFloat(item.singleCost).toFixed(1)} ➔ 建議零售價: $${item.sellPrice} (總採購量: ${item.totalQty})</div>`; 
-    });
-}
-
-// 視窗焦點重新對焦與 30 秒自動輪詢
-window.onfocus = function() { fetchCloudData(); };
-setInterval(function() { fetchCloudData(); }, 30000); 
-
-window.onload = function() { 
-    addItemCard('flower'); 
-    const today = new Date().toISOString().slice(0, 10);
-    document.getElementById('inputDate').value = today; 
-    document.getElementById('custDate').value = today;
-    document.getElementById('stockDate').value = today; 
-    fetchCloudData(); 
-};
-</script>
+    function selectThisCustomer(name, phone) {
+      if(activeSelectTarget === 'checkout') {
+        document.getElementById('orderCustomer').value = name;
+        document.getElementById('orderPhone').value = phone;
+      }
+      closeCustomerSelectModal();
+    }
+  </script>
 </body>
 </html>
