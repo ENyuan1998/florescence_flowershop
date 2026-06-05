@@ -21,7 +21,7 @@
         .card { border: 1px solid var(--card-border); padding: 15px; border-radius: 12px; margin-bottom: 15px; background: #fff; }
         .form-group { margin-bottom: 10px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: #666; }
-        input, select { padding: 10px; border: 1px solid #ffccd5; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1em; }
+        input, select, textarea { padding: 10px; border: 1px solid #ffccd5; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1em; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
         .result-badge { background: #fff0f2; padding: 8px; border-radius: 6px; text-align: center; }
         .result-badge .label { font-size: 0.8em; color: #888; } .result-badge .val { font-weight: bold; font-size: 1.05em; }
@@ -42,6 +42,7 @@
         .order-header { display: flex; justify-content: space-between; font-weight: bold; color: #b83b5e; border-bottom: 1px solid #ffe4e8; padding-bottom: 6px; font-size: 0.95em; }
         .order-details { font-size: 0.9em; background: #fff; padding: 10px; border-radius: 6px; margin: 10px 0; border: 1px dashed #ffccd5; }
         .btn { background-color: #ff91a4; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1em; margin-top: 10px; }
+        .btn:hover { background-color: #ff788f; }
         .btn-danger { background-color: #ffe4e8; color: #b83b5e; } .btn-paper { background-color: #ebf5fb; color: #2980b9; border: 1px solid #d4e6f1; }
         .btn-sm { padding: 4px 8px; font-size: 0.8em; border-radius: 6px; width: auto; inline-size: max-content; margin: 0; }
         .danger-zone { border: 2px dashed #e53e3e; background: #fff5f5; padding: 20px; border-radius: 12px; margin-top: 20px; }
@@ -61,6 +62,14 @@
         <div class="tab" onclick="switchTab('tab-history')">📅 財務與流水帳</div>
         <div class="tab" onclick="switchTab('tab-maintenance')">⚙️ 系統上線</div>
     </div>
+
+    <script>
+        // ======= 【請務必填入您的正確資訊】 =======
+        const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
+        const SPREADSHEET_ID = '1uVdZk4g4WDKgiOB76avI2Mt0Os8FNhrCSTg9dfZ5Q2w';
+        const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
+        // ==========================================
+    </script>
 
     <div id="tab-input" class="tab-content active">
         <div class="form-group"><label>📅 進貨日期：</label><input type="date" id="inputDate"></div>
@@ -91,6 +100,22 @@
     <div id="tab-customer" class="tab-content">
         <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">👤 門市客戶消費統計名冊 (雲端同步)</h2>
         <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面數據即時同步自雲端試算表。可點擊「修改」按鈕手動調整客戶消費次數與總金額。</p>
+        
+        <div class="card" style="background: #fffdfd; border: 1px solid #e8d7f5;">
+            <h3 style="margin-top:0; color:#8e44ad; font-size:1.05em;">➕ 手動新增/註冊新客戶</h3>
+            <form id="customerForm" onsubmit="submitCustomerManual(event)">
+                <div class="grid-2">
+                    <div class="form-group"><label>客戶姓名</label><input type="text" id="custName" placeholder="例如：王小明" required></div>
+                    <div class="form-group"><label>電話號碼</label><input type="tel" id="custPhone" placeholder="例如：0912345678" required></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label>通訊地址</label><input type="text" id="custAddress" placeholder="可選填"></div>
+                    <div class="form-group"><label>加入日期</label><input type="date" id="custDate" required></div>
+                </div>
+                <button type="submit" class="btn" style="background-color: #8e44ad; margin-top:5px; padding:8px;">儲存新客戶資料</button>
+            </form>
+        </div>
+
         <div class="card" style="background: #fbf9ff; border-color: #e8d7f5; overflow-x: auto;">
             <table class="report-table">
                 <thead>
@@ -156,15 +181,12 @@
 </div>
 
 <script>
-const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
-const SPREADSHEET_ID = '1uVdZk4g4WDKgiOB76avI2Mt0Os8FNhrCSTg9dfZ5Q2w';
-const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
-
 let ledgerData = JSON.parse(localStorage.getItem('flowerLedgerDataV8')) || [];
 let currentStock = {};
 let pendingOrders = [];
-let cloudCustomers = []; // 🟢 新增：用來存放雲端下載的即時客戶名冊
+let cloudCustomers = []; 
 
+// 核心同步函式：從雲端獲取最新結構
 async function fetchCloudData() {
     const isWiped = localStorage.getItem('flower_system_wiped_v8');
     document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步待處理銷貨單、庫存與客戶名冊...';
@@ -172,9 +194,8 @@ async function fetchCloudData() {
         const cloudRes = await fetch(CLOUD_API).then(r => r.json());
         currentStock = cloudRes.currentStock || {};
         pendingOrders = cloudRes.pendingOrders || [];
-        cloudCustomers = cloudRes.customers || []; // 🟢 新增：將雲端抓到的最新客戶名冊存入全域變數
+        cloudCustomers = cloudRes.customers || []; 
         
-        // 如果目前在客戶名冊分頁，立刻重新渲染畫面，達成跨裝置即時同步
         if (document.getElementById('tab-customer').classList.contains('active')) {
             renderCustomerStats();
         }
@@ -286,7 +307,7 @@ function renderPendingOrders() {
                 
                 <div style="background:#fff0f2; padding:12px; border-radius:10px; font-size:0.92em; color:#555; line-height: 1.6; border: 1px dashed #ffccd5;">
                     <div>1. 花材總計：$${fTotal} 元</div>
-                    <div>1. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span> 元</div>
+                    <div>2. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span> 元</div>
                     <div>3. 提袋費用：$${bPrice} 元</div>
                     <div style="font-weight:bold; font-size:1.15em; color:#b83b5e; border-top: 1px solid #ffccd5; margin-top:6px; padding-top:6px;">
                         4. 花束總計金額：$<span id="final_total_${order.id}">${fTotal + pPrice + bPrice}</span> 元
@@ -309,28 +330,61 @@ function recalcOrderTotal(id, flowerTotal, bagTotal) {
     document.getElementById(`final_total_${id}`).innerText = Math.max(0, flowerTotal + fee + bagTotal - disc);
 }
 
+// 【整合連動】點擊核銷確認入帳，同時寫入 Google 試算表之「銷貨紀錄」工作表
 async function approveOrder(orderId) {
     document.getElementById('syncStatus').innerText = '⚡ 正在向雲端提交入帳核銷指令...';
     try {
         const finalAmt = parseFloat(document.getElementById(`final_total_${orderId}`).innerText) || 0;
         let order = pendingOrders.find(o => o.id === orderId);
+        
+        // 1. 先呼叫雲端核銷
         await fetch(CLOUD_API, {
             method: "POST",
             body: JSON.stringify({ action: "approveOrder", orderId: orderId })
         }).then(r => r.json());
         
-        let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
+        // 2. 【整合新功能】將數據同步上傳寫入 Google 試算表的「銷貨紀錄」工作表
         if (order) {
+            const todayStr = new Date().toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+            const itemsNameSummary = order.items.map(i => `${i.name}(${i.qty})`).join(', ');
+            
+            const salesRecord = {
+                action: 'addSales',
+                row: [
+                    'TX' + orderId,                          // 單號
+                    todayStr,                                // 日期
+                    order.customer,                          // 客戶姓名
+                    itemsNameSummary,                        // 商品名稱明細
+                    order.items[0] ? order.items[0].price : 0, // 基準單價
+                    order.items.reduce((acc, i) => acc + i.qty, 0), // 總數量
+                    finalAmt,                                // 總金額
+                    `色系:${order.packageColor || '無'}. 提袋:${order.needBag ? '是':'否'}`, // 備註
+                    '門市系統'                                // 經手人
+                ]
+            };
+
+            // 發送到後端 GAS 進行表格添加
+            await fetch(CLOUD_API, {
+                method: 'POST',
+                body: JSON.stringify(salesRecord)
+            });
+
+            // 寫入本地歷史大盤統計快照
+            let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
             order.finalAmount = finalAmt;
-            order.closedDate = new Date().toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+            order.closedDate = todayStr;
             order.closedTimestamp = Date.now();
             historySales.push(order);
             localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(historySales));
         }
+
         await fetchCloudData();
         renderPendingOrders();
-        alert(`🎉 雲端核銷入帳成功！`);
-    } catch(e) { alert("核銷失敗"); }
+        alert(`🎉 雲端核銷入帳成功！資料已同步登載至「銷貨紀錄」工作表。`);
+    } catch(e) { 
+        console.error(e);
+        alert("核銷失敗，請檢查網路連線或試算表設定。"); 
+    }
 }
 
 async function deleteOrder(orderId) {
@@ -440,7 +494,7 @@ async function overrideStockFromAudit() {
     } catch(e) { alert("盤點修正失敗"); }
 }
 
-// 🟢 核心修正：改為渲染雲端同步下來的最新客戶資料，而非 local 緩存
+// 渲染雲端即時客戶資料
 function renderCustomerStats() {
     const tbody = document.getElementById('customerReportBody'); tbody.innerHTML = '';
     
@@ -464,13 +518,49 @@ function renderCustomerStats() {
     });
 }
 
-// 🟢 需求 1 的核心函式：點擊跳出視窗輸入手動修改數據並即時打 API 覆寫雲端
+// 【新整合】手動提交新客戶表單至 Google 試算表（客戶名冊）
+async function submitCustomerManual(e) {
+    e.preventDefault();
+    document.getElementById('syncStatus').innerText = '⚡ 正在發送新客戶註冊資料至雲端...';
+    
+    const autoId = 'CUST' + Date.now().toString().slice(-6);
+    const cName = document.getElementById('custName').value.trim();
+    const cPhone = document.getElementById('custPhone').value.trim();
+    const cAddress = document.getElementById('custAddress').value.trim();
+    const cDate = document.getElementById('custDate').value;
+
+    const formData = {
+        action: 'addCustomer',
+        row: [ autoId, cName, cPhone, cAddress, cDate ]
+    };
+
+    try {
+        const response = await fetch(CLOUD_API, {
+            method: 'POST',
+            body: JSON.stringify(formData)
+        }).then(res => res.json());
+
+        if(response.status === 'success') {
+            alert('✨ 客戶名冊資料建立成功！已同步發送寫入雲端。');
+            document.getElementById('customerForm').reset();
+            document.getElementById('custDate').valueAsDate = new Date();
+            await fetchCloudData(); // 重新整理列表
+        } else {
+            alert('建立失敗：' + response.message);
+        }
+    } catch(err) {
+        console.error(err);
+        alert('連線失敗，請檢查網路連線。');
+    }
+}
+
+// 點擊彈出視窗手動修改雲端客戶統計
 async function editCustomerData(name, phone, currentCount, currentTotal) {
     const newCount = prompt(`請輸入【${name}】的全新【消費次數】:`, currentCount);
-    if (newCount === null) return; // 使用者按取消
+    if (newCount === null) return; 
     
     const newTotal = prompt(`請輸入【${name}】的全新【消費總金額】:`, currentTotal);
-    if (newTotal === null) return; // 使用者按取消
+    if (newTotal === null) return; 
 
     const countParsed = parseInt(newCount);
     const totalParsed = parseFloat(newTotal);
@@ -498,7 +588,7 @@ async function editCustomerData(name, phone, currentCount, currentTotal) {
 
         if (response.status === "success") {
             alert(`✨ 【${name}】的消費統計資料已成功手動覆寫至雲端試算表！`);
-            await fetchCloudData(); // 強制所有資料重抓更新
+            await fetchCloudData(); 
         } else {
             alert("雲端覆寫失敗：" + response.message);
         }
@@ -616,18 +706,16 @@ function renderHistoryLog() {
     });
 }
 
-// 🟢 同步優化機制：
-// 1. 當手機、平板、電腦的使用者「把網頁視窗切換回來」時，立刻同步最新雲端資料
+// 視窗焦點重新對焦與 30 秒自動輪詢
 window.onfocus = function() { fetchCloudData(); };
-
-// 2. 新增定時輪詢：每 30 秒自動默默從雲端抓取一次，確保未重新整理的裝置也能即時同步
-setInterval(function() {
-    fetchCloudData();
-}, 30000); 
+setInterval(function() { fetchCloudData(); }, 30000); 
 
 window.onload = function() { 
-    addItemCard('flower'); const today = new Date().toISOString().slice(0, 10);
-    document.getElementById('inputDate').value = today; document.getElementById('stockDate').value = today; 
+    addItemCard('flower'); 
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('inputDate').value = today; 
+    document.getElementById('custDate').value = today;
+    document.getElementById('stockDate').value = today; 
     fetchCloudData(); 
 };
 </script>
