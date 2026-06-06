@@ -163,6 +163,7 @@ let ledgerData = JSON.parse(localStorage.getItem('flowerLedgerDataV8')) || [];
 let currentStock = {};
 let pendingOrders = [];
 
+// ✅ 修正：fetchCloudData 確保 salesHistory 一定在 early return 前就寫入 localStorage
 async function fetchCloudData() {
     const isWiped = localStorage.getItem('flower_system_wiped_v8');
     document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步待處理銷貨單與庫存...';
@@ -170,6 +171,11 @@ async function fetchCloudData() {
         const cloudRes = await fetch(CLOUD_API).then(r => r.json());
         currentStock = cloudRes.currentStock || {};
         pendingOrders = cloudRes.pendingOrders || [];
+
+        // ✅ 修正重點：salesHistory 必須在任何 return 之前就先存入 localStorage
+        if (cloudRes.salesHistory) {
+            localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(cloudRes.salesHistory));
+        }
 
         // 一次性遷移：把舊的本地銷售紀錄送上雲（只跑一次）
         const localSales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
@@ -182,10 +188,9 @@ async function fetchCloudData() {
             localStorage.setItem('flower_sales_migrated_v9', 'true');
             // 遷移後重新抓一次雲端，確保拿到合併後的完整資料
             const reRes = await fetch(CLOUD_API).then(r => r.json());
-            if (reRes.salesHistory) localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(reRes.salesHistory));
-        } else if (cloudRes.salesHistory) {
-            // 銷售紀錄以雲端為唯一真實來源
-            localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(cloudRes.salesHistory));
+            if (reRes.salesHistory) {
+                localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(reRes.salesHistory));
+            }
         }
 
         if (isWiped === 'true' && ledgerData.length === 0) {
@@ -216,14 +221,26 @@ async function fetchCloudData() {
     }
 }
 
-function switchTab(tabId) {
+// ✅ 修正：switchTab 改為 async，切換到客戶統計時強制等待雲端同步完成再渲染
+async function switchTab(tabId) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
     if(tabId === 'tab-input') document.querySelectorAll('.tab')[0].classList.add('active');
-    if(tabId === 'tab-order') { document.querySelectorAll('.tab')[1].classList.add('active'); renderPendingOrders(); }
-    if(tabId === 'tab-stock') { document.querySelectorAll('.tab')[2].classList.add('active'); renderStockList(); }
-    if(tabId === 'tab-customer') { document.querySelectorAll('.tab')[3].classList.add('active'); renderCustomerStats(); }
+    if(tabId === 'tab-order') {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        renderPendingOrders();
+    }
+    if(tabId === 'tab-stock') {
+        document.querySelectorAll('.tab')[2].classList.add('active');
+        renderStockList();
+    }
+    if(tabId === 'tab-customer') {
+        document.querySelectorAll('.tab')[3].classList.add('active');
+        // ✅ 修正重點：先等雲端資料同步完成，再渲染客戶統計，避免讀到空的 localStorage
+        await fetchCloudData();
+        renderCustomerStats();
+    }
     if(tabId === 'tab-history') {
         document.querySelectorAll('.tab')[4].classList.add('active');
         calculateSalesStats(); updateSearchSelects(); renderMonthlyReport(); renderAnalytics('flower'); renderHistoryLog();
@@ -459,9 +476,17 @@ async function overrideStockFromAudit() {
 }
 
 function renderCustomerStats() {
-    const tbody = document.getElementById('customerReportBody'); tbody.innerHTML = '';
+    const tbody = document.getElementById('customerReportBody');
+    tbody.innerHTML = '';
+
+    // ✅ 直接從 localStorage 讀取（此時 fetchCloudData 已確保資料是最新的）
     let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
     let customerMap = {};
+
+    if (historySales.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:#999;text-align:center;padding:15px;">暫無銷售紀錄，請確認雲端試算表已有資料</td></tr>`;
+        return;
+    }
 
     historySales.forEach(sale => {
         const name = (sale.customer || "散客").trim();
@@ -470,14 +495,20 @@ function renderCustomerStats() {
         const amount = parseFloat(sale.finalAmount) || 0;
         const saleDate = sale.closedDate || "未記";
 
-        if(!customerMap[key]) { customerMap[key] = { name: name, phone: phone, count: 0, totalSpent: 0, lastDate: saleDate }; }
+        if(!customerMap[key]) {
+            customerMap[key] = { name: name, phone: phone, count: 0, totalSpent: 0, lastDate: saleDate };
+        }
         customerMap[key].count += 1;
         customerMap[key].totalSpent += amount;
-        if(new Date(saleDate) > new Date(customerMap[key].lastDate)) customerMap[key].lastDate = saleDate;
+        if(new Date(saleDate) > new Date(customerMap[key].lastDate)) {
+            customerMap[key].lastDate = saleDate;
+        }
     });
 
     let customerList = Object.values(customerMap);
-    if(customerList.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="color:#999;text-align:center;padding:15px;">暫無紀錄</td></tr>`; return; }
+    // ✅ 依消費金額由高到低排序
+    customerList.sort((a, b) => b.totalSpent - a.totalSpent);
+
     customerList.forEach(c => {
         const safeName = c.name.replace(/'/g, "\\'");
         const safePhone = c.phone.replace(/'/g, "\\'");
@@ -525,17 +556,24 @@ async function editCustomer(oldName, oldPhone) {
 
 function calculateSalesStats() {
     let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
-    const now = new Date(); const todayStr = now.toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
     let daily = 0, weekly = 0, monthly = 0, quarterly = 0, yearly = 0;
-    const oneDayMs = 24 * 60 * 60 * 1000; const nowTs = now.getTime();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const nowTs = now.getTime();
 
     historySales.forEach(sale => {
-        const amt = parseFloat(sale.finalAmount) || 0; const saleTs = sale.closedTimestamp || Date.now();
-        const saleDateStr = sale.closedDate; const diffDays = (nowTs - saleTs) / oneDayMs;
+        const amt = parseFloat(sale.finalAmount) || 0;
+        const saleTs = sale.closedTimestamp || Date.now();
+        const saleDateStr = sale.closedDate;
+        const diffDays = (nowTs - saleTs) / oneDayMs;
         if(saleDateStr === todayStr) daily += amt;
-        if(diffDays <= 7) weekly += amt; if(diffDays <= 30) monthly += amt;
-        if(diffDays <= 90) quarterly += amt; if(diffDays <= 365) yearly += amt;
+        if(diffDays <= 7) weekly += amt;
+        if(diffDays <= 30) monthly += amt;
+        if(diffDays <= 90) quarterly += amt;
+        if(diffDays <= 365) yearly += amt;
     });
+
     document.getElementById('statDaily').innerText = `$${daily.toLocaleString()}`;
     document.getElementById('statWeekly').innerText = `$${weekly.toLocaleString()}`;
     document.getElementById('statMonthly').innerText = `$${monthly.toLocaleString()}`;
@@ -546,11 +584,18 @@ function calculateSalesStats() {
 function addItemCard(type) {
     const container = document.getElementById(type === 'flower' ? 'flowerItemsContainer' : 'paperItemsContainer');
     const cardId = 'card_' + Date.now() + Math.floor(Math.random()*10);
-    const card = document.createElement('div'); card.className = 'card'; card.id = cardId;
-    const lossHtml = type === 'flower' ? `<div class="form-group"><label style="color:var(--flower-color);">⚠️ 預估損耗數量 (支)：</label><input type="number" class="p-lossQty" value="2" oninput="uiCalculate('${cardId}')"></div>` : `<input type="hidden" class="p-lossQty" value="0">`;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = cardId;
+    const lossHtml = type === 'flower'
+        ? `<div class="form-group"><label style="color:var(--flower-color);">⚠️ 預估損耗數量 (支)：</label><input type="number" class="p-lossQty" value="2" oninput="uiCalculate('${cardId}')"></div>`
+        : `<input type="hidden" class="p-lossQty" value="0">`;
 
     card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>${type==='flower'?'🌸 花材':'📦 包材'}</span><button class="btn btn-danger" style="width:auto; margin:0; padding:2px 6px; font-size:0.8em;" onclick="document.getElementById('${cardId}').remove()">移除</button></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <span>${type==='flower'?'🌸 花材':'📦 包材'}</span>
+            <button class="btn btn-danger" style="width:auto; margin:0; padding:2px 6px; font-size:0.8em;" onclick="document.getElementById('${cardId}').remove()">移除</button>
+        </div>
         <div class="form-group"><label>品項名稱：</label><input type="text" class="p-name" value="${type==='flower'?'紅玫瑰':'霧面紙'}"></div>
         <div class="grid-2">
             <div class="form-group"><label>數量：</label><input type="number" class="p-totalQty" value="20" oninput="uiCalculate('${cardId}')"></div>
@@ -562,7 +607,8 @@ function addItemCard(type) {
             <div class="result-badge"><div class="label">建議零售價(3倍)</div><div class="val price">$<span class="lbl-price">0</span></div></div>
         </div>
     `;
-    container.appendChild(card); uiCalculate(cardId);
+    container.appendChild(card);
+    uiCalculate(cardId);
 }
 
 function uiCalculate(cardId) {
@@ -570,44 +616,57 @@ function uiCalculate(cardId) {
     const tQ = parseFloat(card.querySelector('.p-totalQty').value)||0;
     const tC = parseFloat(card.querySelector('.p-totalCost').value)||0;
     const lQ = parseFloat(card.querySelector('.p-lossQty').value)||0;
-    const eff = tQ - lQ; const cost = eff > 0 ? (tC / eff) : 0;
+    const eff = tQ - lQ;
+    const cost = eff > 0 ? (tC / eff) : 0;
     card.querySelector('.lbl-cost').innerText = cost.toFixed(1);
     card.querySelector('.lbl-price').innerText = Math.round(cost*3);
 }
 
 function renderMonthlyReport() {
-    const tbody = document.getElementById('monthlyReportBody'); tbody.innerHTML = ''; let reportMap = {};
+    const tbody = document.getElementById('monthlyReportBody');
+    tbody.innerHTML = '';
+    let reportMap = {};
     ledgerData.forEach(item => {
-        if(!item.date) return; const ym = item.date.substr(0, 7);
+        if(!item.date) return;
+        const ym = item.date.substr(0, 7);
         if(!reportMap[ym]) reportMap[ym] = { flower: 0, paper: 0 };
         if(item.type === 'flower') reportMap[ym].flower += parseFloat(item.totalCost) || 0;
         if(item.type === 'paper') reportMap[ym].paper += parseFloat(item.totalCost) || 0;
     });
     Object.keys(reportMap).sort((a,b)=>b.localeCompare(a)).forEach(ym => {
-        tbody.innerHTML += `<tr><td style="font-weight:bold;">📅 ${ym}</td><td style="color:var(--flower-color);font-weight:bold;">$${reportMap[ym].flower.toLocaleString()}</td><td style="color:var(--paper-color);font-weight:bold;">$${reportMap[ym].paper.toLocaleString()}</td><td class="total-highlight">$${(reportMap[ym].flower+reportMap[ym].paper).toLocaleString()}</td></tr>`;
+        tbody.innerHTML += `<tr>
+            <td style="font-weight:bold;">📅 ${ym}</td>
+            <td style="color:var(--flower-color);font-weight:bold;">$${reportMap[ym].flower.toLocaleString()}</td>
+            <td style="color:var(--paper-color);font-weight:bold;">$${reportMap[ym].paper.toLocaleString()}</td>
+            <td class="total-highlight">$${(reportMap[ym].flower+reportMap[ym].paper).toLocaleString()}</td>
+        </tr>`;
     });
 }
 
 function renderStockList() {
-    const f = document.getElementById('flowerStockContainer'); f.innerHTML = ''; const p = document.getElementById('paperStockContainer'); p.innerHTML = '';
+    const f = document.getElementById('flowerStockContainer'); f.innerHTML = '';
+    const p = document.getElementById('paperStockContainer'); p.innerHTML = '';
     let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))];
     let pNames = [...new Set(ledgerData.filter(i => i.type === 'paper').map(i => i.name))];
     Object.keys(currentStock).forEach(name => { if (!ledgerData.some(i => i.name === name)) fNames.push(name); });
     fNames = [...new Set(fNames)]; pNames = [...new Set(pNames)];
     if(fNames.length === 0) f.innerHTML = '<p style="color:#999;font-size:0.9em;text-align:center;">暫無商品品項資料</p>';
     if(pNames.length === 0) p.innerHTML = '<p style="color:#999;font-size:0.9em;text-align:center;">暫無商品品項資料</p>';
-    fNames.forEach(n => { if(n) f.appendChild(createStockRow(n)) }); pNames.forEach(n => { if(n) p.appendChild(createStockRow(n)) });
+    fNames.forEach(n => { if(n) f.appendChild(createStockRow(n)) });
+    pNames.forEach(n => { if(n) p.appendChild(createStockRow(n)) });
 }
 
 function createStockRow(name) {
     const qty = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
-    const div = document.createElement('div'); div.className = 'stock-row';
+    const div = document.createElement('div');
+    div.className = 'stock-row';
     div.innerHTML = `<span>${name}</span><input type="number" class="stock-qty-input" data-name="${name}" value="${qty}" style="width:80px; text-align:center;">`;
     return div;
 }
 
 function updateSearchSelects() {
-    const f = document.getElementById('searchFlowerSelect'); f.innerHTML = ''; const p = document.getElementById('searchPaperSelect'); p.innerHTML = '';
+    const f = document.getElementById('searchFlowerSelect'); f.innerHTML = '';
+    const p = document.getElementById('searchPaperSelect'); p.innerHTML = '';
     let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))];
     let pNames = [...new Set(ledgerData.filter(i => i.type === 'paper').map(i => i.name))];
     if(fNames.length === 0) fNames = Object.keys(currentStock);
@@ -616,26 +675,40 @@ function updateSearchSelects() {
 }
 
 function renderAnalytics(type) {
-    const selectId = type === 'flower' ? 'searchFlowerSelect' : 'searchPaperSelect'; const name = document.getElementById(selectId)?.value;
-    const container = document.getElementById('analyticsResult'); if(!name) { container.innerHTML='<p style="color:#999; padding: 10px;">無選取商品</p>'; return;}
+    const selectId = type === 'flower' ? 'searchFlowerSelect' : 'searchPaperSelect';
+    const name = document.getElementById(selectId)?.value;
+    const container = document.getElementById('analyticsResult');
+    if(!name) { container.innerHTML='<p style="color:#999; padding: 10px;">無選取商品</p>'; return; }
     const filtered = ledgerData.filter(i => i.name === name).sort((a,b) => a.date.localeCompare(b.date));
     const cCost = filtered.length > 0 ? parseFloat(filtered[filtered.length - 1].singleCost || 0) : 0;
     const stockCount = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
-    container.innerHTML = `<div class="card" style="margin-top:10px;"><h3>📊 ${name} (雲端庫存: ${stockCount})</h3><div class="grid-2"><div class="result-badge"><div class="label">最新有效成本</div><div>$${cCost.toFixed(1)}</div></div><div class="result-badge" style="background:#fff0f2;"><div class="label">建議零售價</div><div style="color:#b83b5e; font-weight:bold;">$${Math.round(cCost*3)}</div></div></div></div>`;
+    container.innerHTML = `<div class="card" style="margin-top:10px;">
+        <h3>📊 ${name} (雲端庫存: ${stockCount})</h3>
+        <div class="grid-2">
+            <div class="result-badge"><div class="label">最新有效成本</div><div>$${cCost.toFixed(1)}</div></div>
+            <div class="result-badge" style="background:#fff0f2;"><div class="label">建議零售價</div><div style="color:#b83b5e; font-weight:bold;">$${Math.round(cCost*3)}</div></div>
+        </div>
+    </div>`;
 }
 
 function renderHistoryLog() {
-    const container = document.getElementById('historyLogContainer'); container.innerHTML = '';
+    const container = document.getElementById('historyLogContainer');
+    container.innerHTML = '';
     if(ledgerData.length===0) { container.innerHTML = '<p style="color:#999;text-align:center;">尚無流水帳資料</p>'; return; }
     [...ledgerData].sort((a,b)=>b.date.localeCompare(a.date)).forEach(item => {
-        container.innerHTML += `<div class="history-item"><b>📅 ${item.date} [${item.type==='flower'?'花材':'包材'}] ${item.name}</b><br>進貨成本: $${parseFloat(item.singleCost).toFixed(1)} ➔ 建議零售價: $${item.sellPrice} (總採購量: ${item.totalQty})</div>`;
+        container.innerHTML += `<div class="history-item">
+            <b>📅 ${item.date} [${item.type==='flower'?'花材':'包材'}] ${item.name}</b><br>
+            進貨成本: $${parseFloat(item.singleCost).toFixed(1)} ➔ 建議零售價: $${item.sellPrice} (總採購量: ${item.totalQty})
+        </div>`;
     });
 }
 
 window.onfocus = function() { fetchCloudData(); };
 window.onload = function() {
-    addItemCard('flower'); const today = new Date().toISOString().slice(0, 10);
-    document.getElementById('inputDate').value = today; document.getElementById('stockDate').value = today;
+    addItemCard('flower');
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('inputDate').value = today;
+    document.getElementById('stockDate').value = today;
     fetchCloudData();
 };
 </script>
