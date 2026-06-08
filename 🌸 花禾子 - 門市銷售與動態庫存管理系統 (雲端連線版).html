@@ -1,191 +1,229 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌸 花禾子 - 門市銷售與動態庫存管理系統 (雲端連線版2.0)</title>
-  <style>
-      :root {
-          --primary: #ffb6c1; --primary-dark: #ff91a4; --bg: #fff5f6; --text: #4a4a4a; --card-border: #ffe4e8; --flower-color: #d16174; --paper-color: #2c97de;
-      }
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-      .container { background: white; padding: 20px 15px; border-radius: 16px; box-shadow: 0 8px 24px rgba(255, 182, 193, 0.2); max-width: 800px; margin: 0 auto; }
-      h1 { color: #d16174; margin: 0 0 15px 0; font-size: 1.6em; text-align: center; }
-      .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--card-border); flex-wrap: wrap; }
-      .tab { flex: 1; min-width: 80px; text-align: center; padding: 12px 2px; cursor: pointer; font-weight: bold; color: #888; font-size: 0.85em; }
-      .tab.active { color: #d16174; border-bottom: 3px solid var(--primary-dark); background-color: #fff0f2; border-radius: 8px 8px 0 0; }
-      .tab-content { display: none; } .tab-content.active { display: block; }
-      h2 { font-size: 1.2em; padding-left: 8px; margin: 25px 0 10px 0; }
-      h2.flower-title { color: var(--flower-color); border-left: 4px solid var(--primary-dark); }
-      h2.paper-title { color: var(--paper-color); border-left: 4px solid var(--paper-color); }
-      .card { border: 1px solid var(--card-border); padding: 15px; border-radius: 12px; margin-bottom: 15px; background: #fff; }
-      .form-group { margin-bottom: 10px; }
-      label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: #666; }
-      input, select, textarea { padding: 10px; border: 1px solid #ffccd5; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1em; }
-      textarea { min-height: 80px; font-family: inherit; }
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
-      .result-badge { background: #fff0f2; padding: 8px; border-radius: 6px; text-align: center; }
-      .result-badge .label { font-size: 0.8em; color: #888; } .result-badge .val { font-weight: bold; font-size: 1.05em; }
-      .result-badge .val.price { color: #b83b5e; font-size: 1.15em; }
-      .history-item { border-left: 4px solid #ffb6c1; padding-left: 10px; margin-bottom: 12px; background: #fafafa; padding: 10px; border-radius: 6px; }
-      .sales-dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-      @media(min-width: 600px) { .sales-dashboard { grid-template-columns: repeat(5, 1fr); } }
-      .sales-card { background: #fff; border: 1px solid #ffccd5; padding: 12px 8px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(255,182,193,0.1); }
-      .sales-card .title { font-size: 0.8em; color: #666; font-weight: bold; margin-bottom: 5px; }
-      .sales-card .amt { font-size: 1.2em; font-weight: 900; color: #b83b5e; }
-      .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ffe4e8; }
-      .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
-      .report-table th, .report-table td { border: 1px solid #ffe4e8; padding: 8px; text-align: center; }
-      .report-table th { background-color: #fff0f2; color: #d16174; } .total-highlight { font-weight: bold; color: #b83b5e; background-color: #fff0f2; }
-      .sync-banner { background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 8px; font-size: 0.85em; text-align: center; margin-bottom: 15px; font-weight: bold; }
-      .order-card { border: 2px solid #ff91a4; background: #fffdfd; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-      .order-header { display: flex; justify-content: space-between; font-weight: bold; color: #b83b5e; border-bottom: 1px solid #ffe4e8; padding-bottom: 6px; font-size: 0.95em; }
-      .order-details { font-size: 0.9em; background: #fff; padding: 10px; border-radius: 6px; margin: 10px 0; border: 1px dashed #ffccd5; }
-      .btn { background-color: #ff91a4; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1em; margin-top: 10px; }
-      .btn-danger { background-color: #ffe4e8; color: #b83b5e; } .btn-paper { background-color: #ebf5fb; color: #2980b9; border: 1px solid #d4e6f1; }
-      .danger-zone { border: 2px dashed #e53e3e; background: #fff5f5; padding: 20px; border-radius: 12px; margin-top: 20px; }
-      .cost-item { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e0e0e0; }
-      .cost-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 花禾子 - 門市銷售與動態庫存管理系統 (雲端連線版2.0)</title>
+<style>
+    :root {
+        --primary: #ffb6c1; --primary-dark: #ff91a4; --bg: #fff5f6; --text: #4a4a4a; --card-border: #ffe4e8; --flower-color: #d16174; --paper-color: #2c97de;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+    .container { background: white; padding: 20px 15px; border-radius: 16px; box-shadow: 0 8px 24px rgba(255, 182, 193, 0.2); max-width: 800px; margin: 0 auto; }
+    h1 { color: #d16174; margin: 0 0 15px 0; font-size: 1.6em; text-align: center; }
+    .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--card-border); flex-wrap: wrap; }
+    .tab { flex: 1; min-width: 70px; text-align: center; padding: 10px 2px; cursor: pointer; font-weight: bold; color: #888; font-size: 0.75em; }
+    .tab.active { color: #d16174; border-bottom: 3px solid var(--primary-dark); background-color: #fff0f2; border-radius: 8px 8px 0 0; }
+    .tab-content { display: none; } .tab-content.active { display: block; }
+    h2 { font-size: 1.2em; padding-left: 8px; margin: 25px 0 10px 0; }
+    h2.flower-title { color: var(--flower-color); border-left: 4px solid var(--primary-dark); }
+    h2.paper-title { color: var(--paper-color); border-left: 4px solid var(--paper-color); }
+    .card { border: 1px solid var(--card-border); padding: 15px; border-radius: 12px; margin-bottom: 15px; background: #fff; }
+    .form-group { margin-bottom: 10px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: #666; }
+    input, select, textarea { padding: 10px; border: 1px solid #ffccd5; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1em; }
+    textarea { min-height: 80px; font-family: inherit; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+    .result-badge { background: #fff0f2; padding: 8px; border-radius: 6px; text-align: center; }
+    .result-badge .label { font-size: 0.8em; color: #888; } .result-badge .val { font-weight: bold; font-size: 1.05em; }
+    .result-badge .val.price { color: #b83b5e; font-size: 1.15em; }
+    .history-item { border-left: 4px solid #ffb6c1; padding-left: 10px; margin-bottom: 12px; background: #fafafa; padding: 10px; border-radius: 6px; }
+    .sales-dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+    @media(min-width: 600px) { .sales-dashboard { grid-template-columns: repeat(5, 1fr); } }
+    .sales-card { background: #fff; border: 1px solid #ffccd5; padding: 12px 8px; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(255,182,193,0.1); }
+    .sales-card .title { font-size: 0.8em; color: #666; font-weight: bold; margin-bottom: 5px; }
+    .sales-card .amt { font-size: 1.2em; font-weight: 900; color: #b83b5e; }
+    .stock-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ffe4e8; }
+    .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+    .report-table th, .report-table td { border: 1px solid #ffe4e8; padding: 8px; text-align: center; }
+    .report-table th { background-color: #fff0f2; color: #d16174; } .total-highlight { font-weight: bold; color: #b83b5e; background-color: #fff0f2; }
+    .sync-banner { background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 8px; font-size: 0.85em; text-align: center; margin-bottom: 15px; font-weight: bold; }
+    .order-card { border: 2px solid #ff91a4; background: #fffdfd; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+    .order-header { display: flex; justify-content: space-between; font-weight: bold; color: #b83b5e; border-bottom: 1px solid #ffe4e8; padding-bottom: 6px; font-size: 0.95em; }
+    .order-details { font-size: 0.9em; background: #fff; padding: 10px; border-radius: 6px; margin: 10px 0; border: 1px dashed #ffccd5; }
+    .btn { background-color: #ff91a4; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1em; margin-top: 10px; }
+    .btn-danger { background-color: #ffe4e8; color: #b83b5e; } .btn-paper { background-color: #ebf5fb; color: #2980b9; border: 1px solid #d4e6f1; }
+    .danger-zone { border: 2px dashed #e53e3e; background: #fff5f5; padding: 20px; border-radius: 12px; margin-top: 20px; }
+    .cost-item { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e0e0e0; }
+    .cost-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    
+    /* 線上訂單樣式 */
+    .online-order-card { border: 2px solid #8e44ad; background: #fbf9ff; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+    .online-order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px dashed #e8d7f5; }
+    .order-number { font-size: 1.1em; font-weight: bold; color: #8e44ad; }
+    .order-status { padding: 5px 12px; border-radius: 15px; font-size: 0.85em; font-weight: bold; }
+    .status-pending { background: #fff3e0; color: #d97706; }
+    .status-paid { background: #e8f5e9; color: #2e7d32; }
+    .status-completed { background: #e3f2fd; color: #1976d2; }
+    .status-cancelled { background: #ffebee; color: #c62828; }
+    .order-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+    .info-box { background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #e8d7f5; }
+    .info-label { font-size: 0.75em; color: #999; margin-bottom: 3px; }
+    .info-value { font-weight: bold; color: #4a4a4a; font-size: 0.9em; }
+    .filter-buttons { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+    .filter-btn { padding: 8px 15px; border: 2px solid #e8d7f5; background: white; border-radius: 20px; cursor: pointer; font-size: 0.85em; font-weight: bold; color: #8e44ad; transition: all 0.3s; }
+    .filter-btn:hover { background: #f5f0ff; }
+    .filter-btn.active { background: #8e44ad; color: white; border-color: #8e44ad; }
+</style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🌸 花禾子 - 門市銷售與動態庫存管理系統 (雲端連線版)</h1>
-  <div class="sync-banner" id="syncStatus">⏳ 初始化雲端資料庫...</div>
+<h1>🌸 花禾子 - 門市銷售與動態庫存管理系統 (雲端連線版)</h1>
+<div class="sync-banner" id="syncStatus">⏳ 初始化雲端資料庫...</div>
 
-  <div class="tabs">
-      <div class="tab active" onclick="switchTab('tab-input')">✍️ 進貨記帳</div>
-      <div class="tab" onclick="switchTab('tab-order')">🏪 待處理銷貨</div>
-      <div class="tab" onclick="switchTab('tab-stock')">📋 每日盤點</div>
-      <div class="tab" onclick="switchTab('tab-avgprice')">📊 花材均價</div>
-      <div class="tab" onclick="switchTab('tab-fixedcost')">💰 固定成本</div>
-      <div class="tab" onclick="switchTab('tab-customer')">👤 客戶統計</div>
-      <div class="tab" onclick="switchTab('tab-history')">📅 財務流水</div>
-      <div class="tab" onclick="switchTab('tab-maintenance')">⚙️ 系統上線</div>
-  </div>
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('tab-online-orders')">🛒 線上訂單</div>
+    <div class="tab" onclick="switchTab('tab-input')">✍️ 進貨記帳</div>
+    <div class="tab" onclick="switchTab('tab-order')">🏪 待處理銷貨</div>
+    <div class="tab" onclick="switchTab('tab-stock')">📋 每日盤點</div>
+    <div class="tab" onclick="switchTab('tab-avgprice')">📊 花材均價</div>
+    <div class="tab" onclick="switchTab('tab-fixedcost')">💰 固定成本</div>
+    <div class="tab" onclick="switchTab('tab-customer')">👤 客戶統計</div>
+    <div class="tab" onclick="switchTab('tab-history')">📅 財務流水</div>
+    <div class="tab" onclick="switchTab('tab-maintenance')">⚙️ 系統上線</div>
+</div>
 
-  <div id="tab-input" class="tab-content active">
-      <div class="form-group"><label>📅 進貨日期：</label><input type="date" id="inputDate"></div>
-      <h2 class="flower-title">一、 花材進貨 (有預估損耗)</h2>
-      <div id="flowerItemsContainer"></div>
-      <button class="btn" style="background-color: #fce38a; color: #333;" onclick="addItemCard('flower')">＋ 新增花材品項</button>
+<!-- 線上訂單分頁 -->
+<div id="tab-online-orders" class="tab-content active">
+    <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">🛒 線上訂單管理</h2>
+    <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 此處顯示客戶透過線上表單送出的訂單，請確認付款後更新狀態</p>
+    
+    <div class="filter-buttons">
+        <button class="filter-btn active" onclick="filterOnlineOrders('all')">全部訂單</button>
+        <button class="filter-btn" onclick="filterOnlineOrders('待付款')">待付款</button>
+        <button class="filter-btn" onclick="filterOnlineOrders('已付款')">已付款</button>
+        <button class="filter-btn" onclick="filterOnlineOrders('已完成')">已完成</button>
+        <button class="filter-btn" onclick="filterOnlineOrders('已取消')">已取消</button>
+    </div>
+    
+    <div id="onlineOrdersContainer">
+        <p style="color:#999; text-align:center; padding:30px;">⏳ 正在載入線上訂單...</p>
+    </div>
+</div>
 
-      <h2 class="paper-title" style="margin-top:20px;">二、 包材資材進貨 (不計損耗)</h2>
-      <div id="paperItemsContainer"></div>
-      <button class="btn btn-paper" onclick="addItemCard('paper')">＋ 新增包材品項</button>
-      <button class="btn" style="background-color: #95e1d3; margin-top: 30px; font-size:1.1em; padding:15px;" onclick="saveAllToCloudAndStock()">💾 儲存進貨（同步寫入試算表並更新雲端）</button>
-  </div>
+<div id="tab-input" class="tab-content">
+    <div class="form-group"><label>📅 進貨日期：</label><input type="date" id="inputDate"></div>
+    <h2 class="flower-title">一、 花材進貨 (有預估損耗)</h2>
+    <div id="flowerItemsContainer"></div>
+    <button class="btn" style="background-color: #fce38a; color: #333;" onclick="addItemCard('flower')">＋ 新增花材品項</button>
 
-  <div id="tab-order" class="tab-content">
-      <h2 style="color: #e53e3e; border-left: 4px solid #e53e3e;">🏪 門市即時待處理銷貨單</h2>
-      <div id="pendingOrdersWorkflow"></div>
-  </div>
+    <h2 class="paper-title" style="margin-top:20px;">二、 包材資材進貨 (不計損耗)</h2>
+    <div id="paperItemsContainer"></div>
+    <button class="btn btn-paper" onclick="addItemCard('paper')">＋ 新增包材品項</button>
+    <button class="btn" style="background-color: #95e1d3; margin-top: 30px; font-size:1.1em; padding:15px;" onclick="saveAllToCloudAndStock()">💾 儲存進貨（同步寫入試算表並更新雲端）</button>
+</div>
 
-  <div id="tab-stock" class="tab-content">
-      <div class="form-group"><label>📅 盤點日期：</label><input type="date" id="stockDate"></div>
-      <h2 class="flower-title">🌸 花材現貨盤點 (用來修正誤差值)</h2>
-      <div class="card"><div id="flowerStockContainer"></div></div>
-      <h2 class="paper-title">📦 包材資材盤點 (用來修正誤差值)</h2>
-      <div class="card" style="border-color:#d4e6f1;"><div id="paperStockContainer"></div></div>
-      <button class="btn" style="background-color: #a8dfbf; color: #27ae60; font-size:1.1em;" onclick="overrideStockFromAudit()">💾 覆蓋並儲存盤點數量（修正庫存誤差）</button>
-  </div>
+<div id="tab-order" class="tab-content">
+    <h2 style="color: #e53e3e; border-left: 4px solid #e53e3e;">🏪 門市即時待處理銷貨單</h2>
+    <div id="pendingOrdersWorkflow"></div>
+</div>
 
-  <div id="tab-avgprice" class="tab-content">
-      <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">📊 花材平均價格分析</h2>
-      <div class="form-group">
-          <label>選擇花材品項：</label>
-          <select id="avgPriceFlowerSelect" onchange="renderAvgPriceAnalysis()"></select>
-      </div>
-      <div id="avgPriceResult"></div>
-  </div>
+<div id="tab-stock" class="tab-content">
+    <div class="form-group"><label>📅 盤點日期：</label><input type="date" id="stockDate"></div>
+    <h2 class="flower-title">🌸 花材現貨盤點 (用來修正誤差值)</h2>
+    <div class="card"><div id="flowerStockContainer"></div></div>
+    <h2 class="paper-title">📦 包材資材盤點 (用來修正誤差值)</h2>
+    <div class="card" style="border-color:#d4e6f1;"><div id="paperStockContainer"></div></div>
+    <button class="btn" style="background-color: #a8dfbf; color: #27ae60; font-size:1.1em;" onclick="overrideStockFromAudit()">💾 覆蓋並儲存盤點數量（修正庫存誤差）</button>
+</div>
 
-  <div id="tab-fixedcost" class="tab-content">
-      <h2 style="color: #e67e22; border-left: 4px solid #e67e22;">💰 每月固定成本管理</h2>
-      <p style="font-size:0.85em; color:#666;">※ 記錄店租、水電、人事等固定支出，系統將自動計入月結算</p>
-      
-      <div class="card" style="background: #fffaf0; border-color: #ffe4b3;">
-          <h3 style="margin-top:0;">➕ 新增固定成本項目</h3>
-          <div class="form-group"><label>📅 所屬月份：</label><input type="month" id="fixedCostMonth"></div>
-          <div class="form-group"><label>📝 項目名稱：</label><input type="text" id="fixedCostName" placeholder="例如：店租、水電費、員工薪資"></div>
-          <div class="form-group"><label>💵 金額 ($)：</label><input type="number" id="fixedCostAmount" placeholder="輸入金額"></div>
-          <div class="form-group"><label>📋 備註說明：</label><textarea id="fixedCostNote" placeholder="選填"></textarea></div>
-          <button class="btn" style="background: #e67e22;" onclick="addFixedCost()">💾 儲存固定成本</button>
-      </div>
+<div id="tab-avgprice" class="tab-content">
+    <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">📊 花材平均價格分析</h2>
+    <div class="form-group">
+        <label>選擇花材品項：</label>
+        <select id="avgPriceFlowerSelect" onchange="renderAvgPriceAnalysis()"></select>
+    </div>
+    <div id="avgPriceResult"></div>
+</div>
 
-      <h3 style="margin-top: 30px;">📋 固定成本歷史記錄</h3>
-      <div id="fixedCostList"></div>
-  </div>
+<div id="tab-fixedcost" class="tab-content">
+    <h2 style="color: #e67e22; border-left: 4px solid #e67e22;">💰 每月固定成本管理</h2>
+    <p style="font-size:0.85em; color:#666;">※ 記錄店租、水電、人事等固定支出，系統將自動計入月結算</p>
+    
+    <div class="card" style="background: #fffaf0; border-color: #ffe4b3;">
+        <h3 style="margin-top:0;">➕ 新增固定成本項目</h3>
+        <div class="form-group"><label>📅 所屬月份：</label><input type="month" id="fixedCostMonth"></div>
+        <div class="form-group"><label>📝 項目名稱：</label><input type="text" id="fixedCostName" placeholder="例如：店租、水電費、員工薪資"></div>
+        <div class="form-group"><label>💵 金額 ($)：</label><input type="number" id="fixedCostAmount" placeholder="輸入金額"></div>
+        <div class="form-group"><label>📋 備註說明：</label><textarea id="fixedCostNote" placeholder="選填"></textarea></div>
+        <button class="btn" style="background: #e67e22;" onclick="addFixedCost()">💾 儲存固定成本</button>
+    </div>
 
-  <div id="tab-customer" class="tab-content">
-      <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">👤 門市客戶消費統計名冊</h2>
-      <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面自動匯整雲端銷貨單數據，記錄客戶基本聯絡資訊與歷來消費總額。</p>
-      <div class="card" style="background: #fbf9ff; border-color: #e8d7f5; overflow-x: auto;">
-          <table class="report-table">
-              <thead>
-                  <tr>
-                      <th>客戶姓名</th>
-                      <th>電話號碼</th>
-                      <th>消費次數</th>
-                      <th style="color:#8e44ad;">消費金額統計</th>
-                      <th>上次消費日期</th>
-                  </tr>
-              </thead>
-              <tbody id="customerReportBody"></tbody>
-          </table>
-      </div>
-  </div>
+    <h3 style="margin-top: 30px;">📋 固定成本歷史記錄</h3>
+    <div id="fixedCostList"></div>
+</div>
 
-  <div id="tab-history" class="tab-content">
-      <h2 style="color: #27ae60; border-left: 4px solid #27ae60;">💰 門市銷售業績大盤</h2>
-      <div class="sales-dashboard">
-          <div class="sales-card"><div class="title">📅 每日銷售</div><div class="amt" id="statDaily">$0</div></div>
-          <div class="sales-card"><div class="title">📅 每週金額</div><div class="amt" id="statWeekly">$0</div></div>
-          <div class="sales-card"><div class="title">📅 每月金額</div><div class="amt" id="statMonthly">$0</div></div>
-          <div class="sales-card"><div class="title">📅 每季金額</div><div class="amt" id="statQuarterly">$0</div></div>
-          <div class="sales-card"><div class="title">🏆 年收入金額</div><div class="amt" id="statYearly">$0</div></div>
-      </div>
+<div id="tab-customer" class="tab-content">
+    <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">👤 門市客戶消費統計名冊</h2>
+    <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面自動匯整雲端銷貨單數據，記錄客戶基本聯絡資訊與歷來消費總額。</p>
+    <div class="card" style="background: #fbf9ff; border-color: #e8d7f5; overflow-x: auto;">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>客戶姓名</th>
+                    <th>電話號碼</th>
+                    <th>消費次數</th>
+                    <th style="color:#8e44ad;">消費金額統計</th>
+                    <th>上次消費日期</th>
+                </tr>
+            </thead>
+            <tbody id="customerReportBody"></tbody>
+        </table>
+    </div>
+</div>
 
-      <h2 style="color: #b83b5e; border-left: 4px solid #b83b5e;">💰 每月財務報表（含固定成本與利潤）</h2>
-      <div class="card" style="background: #fffafb; border-color: #ffccd5; overflow-x: auto;">
-          <table class="report-table">
-              <thead><tr>
-                  <th>月份</th>
-                  <th>花材採購</th>
-                  <th>包材採購</th>
-                  <th>固定成本</th>
-                  <th class="total-highlight">總成本</th>
-                  <th style="color:#27ae60;">營收</th>
-                  <th style="color:#8e44ad;">淨利潤</th>
-              </tr></thead>
-              <tbody id="monthlyReportBody"></tbody>
-          </table>
-      </div>
+<div id="tab-history" class="tab-content">
+    <h2 style="color: #27ae60; border-left: 4px solid #27ae60;">💰 門市銷售業績大盤</h2>
+    <div class="sales-dashboard">
+        <div class="sales-card"><div class="title">📅 每日銷售</div><div class="amt" id="statDaily">$0</div></div>
+        <div class="sales-card"><div class="title">📅 每週金額</div><div class="amt" id="statWeekly">$0</div></div>
+        <div class="sales-card"><div class="title">📅 每月金額</div><div class="amt" id="statMonthly">$0</div></div>
+        <div class="sales-card"><div class="title">📅 每季金額</div><div class="amt" id="statQuarterly">$0</div></div>
+        <div class="sales-card"><div class="title">🏆 年收入金額</div><div class="amt" id="statYearly">$0</div></div>
+    </div>
 
-      <h2 class="flower-title" style="margin-top: 30px;">📜 歷史進貨流水帳</h2>
-      <div id="historyLogContainer"></div>
-  </div>
+    <h2 style="color: #b83b5e; border-left: 4px solid #b83b5e;">💰 每月財務報表（含固定成本與利潤）</h2>
+    <div class="card" style="background: #fffafb; border-color: #ffccd5; overflow-x: auto;">
+        <table class="report-table">
+            <thead><tr>
+                <th>月份</th>
+                <th>花材採購</th>
+                <th>包材採購</th>
+                <th>固定成本</th>
+                <th class="total-highlight">總成本</th>
+                <th style="color:#27ae60;">營收</th>
+                <th style="color:#8e44ad;">淨利潤</th>
+            </tr></thead>
+            <tbody id="monthlyReportBody"></tbody>
+        </table>
+    </div>
 
-  <div id="tab-maintenance" class="tab-content">
-      <h2 style="color: #7f8c8d; border-left: 4px solid #7f8c8d;">⚙️ 系統初始化與生產環境啟用</h2>
-      <div class="card">
-          <h3>📊 雲端即時連線核心狀態確認</h3>
-          <ul style="font-size:0.92em; line-height:1.8; color:#4a4a4a; padding-left:20px;">
-              <li>雲端同步掛單：<strong style="color:#e53e3e;" id="checkPendingCount">0</strong> 筆</li>
-              <li>進貨流水帳歷史：<strong style="color:#2c97de;" id="checkLedgerCount">0</strong> 條</li>
-              <li>雲端銷售紀錄：<strong style="color:#27ae60;" id="checkSalesCount">0</strong> 筆</li>
-              <li>固定成本記錄：<strong style="color:#e67e22;" id="checkFixedCostCount">0</strong> 筆</li>
-          </ul>
-          <button class="btn" style="background: #3498db; margin-top: 10px;" onclick="manualBackup()">💾 手動執行備份</button>
-          <p style="font-size:0.85em; color:#666; margin-top:10px;">※ 系統每週一凌晨01:00自動備份，每月1號自動計算上月財務報表</p>
-      </div>
+    <h2 class="flower-title" style="margin-top: 30px;">📜 歷史進貨流水帳</h2>
+    <div id="historyLogContainer"></div>
+</div>
 
-      <div class="danger-zone">
-          <h3 style="color:#c0392b; margin-top:0;">⚠️ 系統重置危險區</h3>
-          <p style="font-size:0.85em; color:#7f8c8d;">點擊下方按鈕將清除本地緩存並重設雲端庫存。</p>
-          <button class="btn" style="background:#e53e3e; font-size:1.1em; padding:15px;" onclick="wipeTestDataAndGoLive()">🔥 清除本地測試資料並重設雲端庫存</button>
-      </div>
-  </div>
+<div id="tab-maintenance" class="tab-content">
+    <h2 style="color: #7f8c8d; border-left: 4px solid #7f8c8d;">⚙️ 系統初始化與生產環境啟用</h2>
+    <div class="card">
+        <h3>📊 雲端即時連線核心狀態確認</h3>
+        <ul style="font-size:0.92em; line-height:1.8; color:#4a4a4a; padding-left:20px;">
+            <li>線上訂單：<strong style="color:#8e44ad;" id="checkOnlineOrderCount">0</strong> 筆</li>
+            <li>雲端同步掛單：<strong style="color:#e53e3e;" id="checkPendingCount">0</strong> 筆</li>
+            <li>進貨流水帳歷史：<strong style="color:#2c97de;" id="checkLedgerCount">0</strong> 條</li>
+            <li>雲端銷售紀錄：<strong style="color:#27ae60;" id="checkSalesCount">0</strong> 筆</li>
+            <li>固定成本記錄：<strong style="color:#e67e22;" id="checkFixedCostCount">0</strong> 筆</li>
+        </ul>
+        <button class="btn" style="background: #3498db; margin-top: 10px;" onclick="manualBackup()">💾 手動執行備份</button>
+        <p style="font-size:0.85em; color:#666; margin-top:10px;">※ 系統每週一凌晨01:00自動備份，每月1號自動計算上月財務報表</p>
+    </div>
+
+    <div class="danger-zone">
+        <h3 style="color:#c0392b; margin-top:0;">⚠️ 系統重置危險區</h3>
+        <p style="font-size:0.85em; color:#7f8c8d;">點擊下方按鈕將清除本地緩存並重設雲端庫存。</p>
+        <button class="btn" style="background:#e53e3e; font-size:1.1em; padding:15px;" onclick="wipeTestDataAndGoLive()">🔥 清除本地測試資料並重設雲端庫存</button>
+    </div>
+</div>
 </div>
 
 <script>
@@ -197,7 +235,8 @@ let ledgerData = JSON.parse(localStorage.getItem('flowerLedgerDataV8')) || [];
 let currentStock = {};
 let pendingOrders = [];
 let fixedCosts = [];
-
+let onlineOrders = [];
+let currentOnlineFilter = 'all';
 async function fetchCloudData() {
   document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步資料...';
   try {
@@ -208,6 +247,40 @@ async function fetchCloudData() {
       if (cloudRes.salesHistory) {
           localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(cloudRes.salesHistory));
       }
+
+      // 載入線上訂單
+      const urlOnlineOrders = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/客戶訂單?key=${API_KEY}`;
+      try {
+          const resOnline = await fetch(urlOnlineOrders).then(r => r.json());
+          if (resOnline.values && resOnline.values.length > 1) {
+              onlineOrders = [];
+              for (let i = 1; i < resOnline.values.length; i++) {
+                  const row = resOnline.values[i];
+                  if (row.length >= 17) {
+                      onlineOrders.push({
+                          rowIndex: i + 1,
+                          orderNumber: row[0] || '',
+                          timestamp: row[1] || '',
+                          buyerName: row[2] || '',
+                          buyerPhone: row[3] || '',
+                          pickupDate: row[4] || '',
+                          pickupTime: row[5] || '',
+                          recipientName: row[6] || '',
+                          recipientPhone: row[7] || '',
+                          recipientAddress: row[8] || '',
+                          product: row[9] || '',
+                          packagingColor: row[10] || '',
+                          bag: row[11] || '',
+                          shippingFee: row[12] || '0',
+                          amount: row[13] || '0',
+                          cardMessage: row[14] || '',
+                          note: row[15] || '',
+                          status: row[16] || '待付款'
+                      });
+                  }
+              }
+          }
+      } catch(e) { console.log('客戶訂單工作表尚未建立或無資料'); }
 
       const urlFixedCost = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/固定成本?key=${API_KEY}`;
       try {
@@ -257,13 +330,14 @@ function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
   const tabIndex = {
-      'tab-input': 0, 'tab-order': 1, 'tab-stock': 2, 'tab-avgprice': 3,
-      'tab-fixedcost': 4, 'tab-customer': 5, 'tab-history': 6, 'tab-maintenance': 7
+      'tab-online-orders': 0, 'tab-input': 1, 'tab-order': 2, 'tab-stock': 3, 'tab-avgprice': 4,
+      'tab-fixedcost': 5, 'tab-customer': 6, 'tab-history': 7, 'tab-maintenance': 8
   };
   
   document.querySelectorAll('.tab')[tabIndex[tabId]].classList.add('active');
   document.getElementById(tabId).classList.add('active');
 
+  if(tabId === 'tab-online-orders') renderOnlineOrders();
   if(tabId === 'tab-order') renderPendingOrders();
   if(tabId === 'tab-stock') renderStockList();
   if(tabId === 'tab-avgprice') { updateAvgPriceSelect(); renderAvgPriceAnalysis(); }
@@ -273,7 +347,117 @@ function switchTab(tabId) {
   if(tabId === 'tab-maintenance') renderMaintenanceInfo();
 }
 
+function filterOnlineOrders(status) {
+  currentOnlineFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  renderOnlineOrders();
+}
+
+function renderOnlineOrders() {
+  const container = document.getElementById('onlineOrdersContainer');
+  
+  const filtered = currentOnlineFilter === 'all' 
+      ? onlineOrders 
+      : onlineOrders.filter(o => o.status === currentOnlineFilter);
+  
+  if (filtered.length === 0) {
+      container.innerHTML = `<p style="color:#999; text-align:center; padding:30px; background:#fafafa; border-radius:8px;">📭 目前沒有符合條件的線上訂單</p>`;
+      return;
+  }
+  
+  const statusClass = {
+      '待付款': 'status-pending',
+      '已付款': 'status-paid',
+      '已完成': 'status-completed',
+      '已取消': 'status-cancelled'
+  };
+  
+  container.innerHTML = '';
+  filtered.forEach(order => {
+      container.innerHTML += `
+          <div class="online-order-card">
+              <div class="online-order-header">
+                  <div class="order-number">📦 ${order.orderNumber}</div>
+                  <div class="order-status ${statusClass[order.status] || 'status-pending'}">${order.status}</div>
+              </div>
+              
+              <div class="order-info-grid">
+                  <div class="info-box">
+                      <div class="info-label">訂購人</div>
+                      <div class="info-value">👤 ${order.buyerName}</div>
+                  </div>
+                  <div class="info-box">
+                      <div class="info-label">聯絡電話</div>
+                      <div class="info-value">📞 ${order.buyerPhone}</div>
+                  </div>
+                  <div class="info-box">
+                      <div class="info-label">取貨日期</div>
+                      <div class="info-value">📅 ${order.pickupDate}</div>
+                  </div>
+                  <div class="info-box">
+                      <div class="info-label">取貨時間</div>
+                      <div class="info-value">⏰ ${order.pickupTime}</div>
+                  </div>
+              </div>
+              
+              <div style="background: #fff; padding: 12px; border-radius: 8px; margin: 10px 0; border: 1px solid #e8d7f5;">
+                  <div style="margin-bottom: 8px;"><strong>收件人：</strong>${order.recipientName} / ${order.recipientPhone}</div>
+                  <div style="margin-bottom: 8px;"><strong>收件地址：</strong>${order.recipientAddress}</div>
+                  <div style="margin-bottom: 8px;"><strong>商品：</strong>${order.product}</div>
+                  <div style="margin-bottom: 8px;"><strong>包裝顏色：</strong>${order.packagingColor}</div>
+                  <div style="margin-bottom: 8px;"><strong>加購提袋：</strong>${order.bag}</div>
+                  <div style="margin-bottom: 8px;"><strong>運費：</strong>$${parseInt(order.shippingFee).toLocaleString()}</div>
+                  <div style="margin-bottom: 8px;"><strong>卡片內容：</strong>${order.cardMessage || '無'}</div>
+                  <div style="margin-bottom: 8px;"><strong>備註：</strong>${order.note || '無'}</div>
+                  <div style="font-size: 1.2em; font-weight: bold; color: #8e44ad; margin-top: 10px; padding-top: 10px; border-top: 2px dashed #e8d7f5;">
+                      <strong>訂單金額：</strong>$${parseInt(order.amount).toLocaleString()}
+                  </div>
+              </div>
+              
+              <div style="font-size: 0.85em; color: #999; margin-top: 8px;">訂單時間：${order.timestamp}</div>
+              
+              <div class="grid-2" style="margin-top: 12px;">
+                  ${order.status === '待付款' ? `<button class="btn" style="background:#27ae60; margin:0;" onclick="updateOnlineOrderStatus('${order.orderNumber}', ${order.rowIndex}, '已付款')">✅ 標記已付款</button>` : ''}
+                  ${order.status === '已付款' ? `<button class="btn" style="background:#3498db; margin:0;" onclick="updateOnlineOrderStatus('${order.orderNumber}', ${order.rowIndex}, '已完成')">📦 標記已完成</button>` : ''}
+                  ${order.status !== '已取消' && order.status !== '已完成' ? `<button class="btn btn-danger" style="margin:0;" onclick="updateOnlineOrderStatus('${order.orderNumber}', ${order.rowIndex}, '已取消')">❌ 取消訂單</button>` : ''}
+              </div>
+          </div>
+      `;
+  });
+}
+
+async function updateOnlineOrderStatus(orderNumber, rowIndex, newStatus) {
+  if (!confirm(`確定要將訂單 ${orderNumber} 標記為「${newStatus}」嗎？`)) return;
+  
+  document.getElementById('syncStatus').innerText = '⚡ 正在更新訂單狀態...';
+  try {
+      const response = await fetch(CLOUD_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              action: 'updateOrderStatus',
+              rowIndex: rowIndex,
+              status: newStatus
+          })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+          alert('✅ 訂單狀態已更新');
+          await fetchCloudData();
+          renderOnlineOrders();
+      } else {
+          alert('❌ 更新失敗：' + result.message);
+      }
+  } catch(e) {
+      alert('❌ 系統錯誤：' + e.message);
+  }
+}
+
 function renderMaintenanceInfo() {
+  document.getElementById('checkOnlineOrderCount').innerText = onlineOrders.length;
   document.getElementById('checkPendingCount').innerText = pendingOrders.length;
   document.getElementById('checkLedgerCount').innerText = ledgerData.length;
   const sales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
@@ -303,10 +487,10 @@ async function wipeTestDataAndGoLive() {
       body: JSON.stringify({ action: "overrideStock", stock: {} })
   });
 
-  ledgerData = []; currentStock = {}; pendingOrders = [];
+  ledgerData = []; currentStock = {}; pendingOrders = []; onlineOrders = [];
   alert("✨ 本地緩存已清除，雲端庫存已歸零！");
   await fetchCloudData();
-  switchTab('tab-input');
+  switchTab('tab-online-orders');
 }
 
 function renderPendingOrders() {
@@ -852,3 +1036,4 @@ window.onload = function() {
 </script>
 </body>
 </html>
+  
