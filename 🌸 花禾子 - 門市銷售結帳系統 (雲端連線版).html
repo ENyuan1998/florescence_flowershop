@@ -3,105 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌸 花禾子 - 門市銷售結帳系統 (雲端連線版)</title>
+  <title>🌸 花禾子 - 銷售結帳系統</title>
   <style>
-      :root { --primary: #ffb6c1; --primary-dark: #ff91a4; --bg: #fff5f6; --text: #4a4a4a; --card-border: #ffe4e8; --flower-color: #d16174; }
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-      .container { background: white; padding: 20px 15px; border-radius: 16px; box-shadow: 0 8px 24px rgba(255, 182, 193, 0.2); max-width: 600px; margin: 0 auto; }
-      h1 { color: #d16174; margin: 0 0 15px 0; font-size: 1.5em; text-align: center; border-bottom: 2px dashed var(--card-border); padding-bottom: 10px; }
-      .sync-banner { background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 8px; font-size: 0.85em; text-align: center; margin-bottom: 15px; font-weight: bold; }
-      .section-title { font-size: 1.05em; font-weight: bold; color: #b83b5e; margin: 15px 0 8px 0; border-left: 3px solid var(--primary-dark); padding-left: 6px; }
-      .form-group { margin-bottom: 12px; }
-      label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; color: #555; }
-      select, input[type="text"], input[type="number"], input[type="date"], input[type="time"] { padding: 10px; border: 1px solid #ffccd5; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1em; }
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 8px; background: #fffafb; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); }
-      .checkbox-group input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
-      .btn { background-color: #ff91a4; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1em; margin-top: 10px; transition: background 0.2s; }
-      .btn:hover { background-color: var(--primary-dark); }
-      .cart-list { border-top: 1px solid #ffe4e8; margin-top: 15px; padding-top: 10px; }
-      .cart-item { display: flex; justify-content: space-between; align-items: center; background: #fffafb; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--card-border); }
-      .item-info { flex: 1; } .item-name { font-weight: bold; color: #333; } .item-meta { font-size: 0.85em; color: #888; }
-      .btn-del { background: #ffe4e8; color: #b83b5e; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-      .total-box-v2 { margin-top: 15px; padding: 15px; background: #fff0f2; border-radius: 12px; border: 1px dashed #ffccd5; }
-      .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.95em; color: #666; }
-      .total-row.grand-highlight { border-top: 1px solid #ffccd5; margin-top: 10px; padding-top: 10px; font-size: 1.2em; font-weight: 900; color: #b83b5e; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #f5f0e8 0%, #e8ddd0 100%); padding: 15px; color: #5d4e37; }
+      .container { max-width: 800px; margin: 0 auto; background: #faf8f5; border-radius: 16px; box-shadow: 0 8px 24px rgba(139, 115, 85, 0.15); overflow: hidden; }
+      .header { background: linear-gradient(135deg, #c9a882 0%, #b89968 100%); color: white; padding: 20px; text-align: center; }
+      .header h1 { font-size: 1.5em; margin-bottom: 5px; }
+      .section { padding: 20px; border-bottom: 1px solid #e8ddd0; }
+      .section:last-child { border-bottom: none; }
+      .section-title { font-size: 1.2em; font-weight: bold; color: #8b7355; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+      .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+      .form-group { display: flex; flex-direction: column; }
+      .form-group label { font-size: 0.9em; color: #6b5d4f; margin-bottom: 5px; font-weight: 500; }
+      .form-group input, .form-group select { padding: 12px; border: 2px solid #e8ddd0; border-radius: 8px; font-size: 1em; transition: all 0.3s; background: white; }
+      .form-group input:focus, .form-group select:focus { outline: none; border-color: #b89968; box-shadow: 0 0 0 3px rgba(184, 153, 104, 0.1); }
+      .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+      .btn-primary { background: #b89968; color: white; }
+      .btn-primary:hover { background: #a68958; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(184, 153, 104, 0.3); }
+      .btn-success { background: #8b7355; color: white; }
+      .btn-success:hover { background: #7a6449; transform: translateY(-2px); }
+      .btn-secondary { background: #e8ddd0; color: #6b5d4f; }
+      .btn-secondary:hover { background: #d4c4b0; }
+      .cart-item { background: #f5f0e8; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e8ddd0; }
+      .cart-item-info { flex: 1; }
+      .cart-item-name { font-weight: bold; color: #5d4e37; margin-bottom: 4px; }
+      .cart-item-detail { font-size: 0.9em; color: #8b7355; }
+      .cart-item-remove { background: #c97b63; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
+      .cart-item-remove:hover { background: #b56b53; }
+      .total-box { background: linear-gradient(135deg, #f5f0e8 0%, #ebe2d5 100%); padding: 20px; border-radius: 12px; margin-top: 15px; border: 2px solid #e8ddd0; }
+      .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; color: #5d4e37; }
+      .total-row.final { font-size: 1.5em; font-weight: bold; color: #8b7355; padding-top: 10px; border-top: 2px dashed #b89968; }
+      .empty-cart { text-align: center; padding: 40px; color: #b89968; }
+      .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: bold; margin-left: 8px; }
+      .status-success { background: #d4e8d4; color: #2e7d32; }
+      .status-warning { background: #ffe8d0; color: #d97706; }
   </style>
 </head>
 <body>
-
 <div class="container">
-  <h1>🛒 花禾子 - 門市銷售結帳系統 (雲端連線版)</h1>
-  <div class="sync-banner" id="syncStatus">⏳ 正在連線中央雲端總部...</div>
-
-  <div class="section-title">👤 客戶基本資料</div>
-  <div class="grid-2">
-      <div class="form-group"><label>客戶姓名：</label><input type="text" id="custName" placeholder="例如：王小明"></div>
-      <div class="form-group"><label>聯絡電話：</label><input type="text" id="custPhone" placeholder="例如：0912345678"></div>
+  <div class="header">
+      <h1>🌸 花禾子 - 銷售結帳系統</h1>
+      <div style="font-size:0.9em; margin-top:5px;">即時庫存連動</div>
   </div>
 
-  <div class="section-title">📅 取貨日期與時間</div>
-  <div class="grid-2">
-      <div class="form-group"><label>取貨日期：</label><input type="date" id="pickupDate"></div>
-      <div class="form-group"><label>取貨時間：</label><input type="time" id="pickupTime"></div>
-  </div>
-
-  <div class="section-title">🌸 選擇購買花材內容 (不含包材)</div>
-  <div class="form-group">
-      <label>選擇花材品項：</label>
-      <select id="itemSelect" onchange="updateStockHint()"></select>
-      <span id="stockHint" class="stock-warn"></span>
-  </div>
-  <div class="form-group">
-      <label>🔢 購買數量 (支)：</label>
-      <input type="number" id="buyQty" value="1" min="1">
-  </div>
-  <button class="btn" style="background-color: #fce38a; color: #333;" onclick="addToCart()">＋ 加入本次購物明細</button>
-
-  <div class="section-title">📦 外包裝客製需求</div>
-  <div class="checkbox-group">
-      <input type="checkbox" id="needPackage" onchange="togglePackageColor(); calculateGrandTotal();">
-      <label for="needPackage" style="margin:0; cursor:pointer;">需要外包裝</label>
-  </div>
-  
-  <div id="packageFieldsGroup" style="display:none; margin-top:8px; border-left: 3px solid #ff91a4; padding-left: 10px;">
-      <div class="grid-2">
+  <div class="section">
+      <div class="section-title">📝 客戶資訊</div>
+      <div class="form-row">
           <div class="form-group">
-              <label>🎨 指定外包裝色系：</label>
-              <input type="text" id="packageColor" placeholder="油畫粉白色、極簡北歐風">
+              <label>客戶姓名</label>
+              <input type="text" id="customerName" placeholder="請輸入客戶姓名">
           </div>
           <div class="form-group">
-              <label>💰 外包裝客製金額 ($)：</label>
-              <input type="number" id="packagePrice" value="300" min="0" oninput="calculateGrandTotal()">
+              <label>聯絡電話</label>
+              <input type="tel" id="customerPhone" placeholder="請輸入聯絡電話">
+          </div>
+      </div>
+      <div class="form-row">
+          <div class="form-group">
+              <label>取貨日期</label>
+              <input type="date" id="pickupDate">
+          </div>
+          <div class="form-group">
+              <label>取貨時間</label>
+              <input type="time" id="pickupTime">
           </div>
       </div>
   </div>
 
-  <div class="checkbox-group" style="margin-top: 8px;">
-      <input type="checkbox" id="needBag" onchange="calculateGrandTotal()">
-      <label for="needBag" style="margin:0; cursor:pointer;">加購透明提袋 (50元)</label>
+  <div class="section">
+      <div class="section-title">🌸 選擇花材</div>
+      <div class="form-row">
+          <div class="form-group">
+              <label>花材品項</label>
+              <select id="flowerSelect">
+                  <option value="">請選擇花材...</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label>數量（支）</label>
+              <input type="number" id="flowerQty" min="1" value="1">
+          </div>
+      </div>
+      <button class="btn btn-primary" onclick="addFlower()" style="width:100%;">➕ 加入花束</button>
   </div>
 
-  <div class="section-title">🚚 運費與配送</div>
-  <div class="form-group">
-      <label>💰 運費金額 ($)：</label>
-      <input type="number" id="shippingFee" value="0" min="0" oninput="calculateGrandTotal()" placeholder="若需配送請填入運費">
+  <div class="section">
+      <div class="section-title">🛒 花束明細</div>
+      <div id="cartContainer">
+          <div class="empty-cart">尚未加入任何花材</div>
+      </div>
   </div>
 
-  <div class="section-title">📝 本次挑選花材清單</div>
-  <div class="cart-list" id="cartContainer">
-      <p style="text-align:center; color:#999; font-size:0.9em;">尚未選擇花材品項 🌸</p>
-  </div>
-  
-  <div class="total-box-v2">
-      <div class="total-row"><span>1. 花材總計：</span><span>$<span id="lblFlowerTotal">0</span> 元</span></div>
-      <div class="total-row"><span>2. 包裝費用：</span><span>$<span id="lblPackageTotal">0</span> 元</span></div>
-      <div class="total-row"><span>3. 提袋費用：</span><span>$<span id="lblBagTotal">0</span> 元</span></div>
-      <div class="total-row"><span>4. 運費金額：</span><span>$<span id="lblShippingTotal">0</span> 元</span></div>
-      <div class="total-row grand-highlight"><span>5. 花束總計：</span><span>$<span id="grandTotal">0</span> 元</span></div>
+  <div class="section">
+      <div class="section-title">💰 費用計算</div>
+      <div class="form-row">
+          <div class="form-group">
+              <label>包裝費</label>
+              <input type="number" id="packagingFee" value="0" min="0" oninput="updateTotal()">
+          </div>
+          <div class="form-group">
+              <label>提袋費</label>
+              <input type="number" id="bagFee" value="0" min="0" oninput="updateTotal()">
+          </div>
+      </div>
+      <div class="form-group" style="margin-bottom:15px;">
+          <label>運費</label>
+          <input type="number" id="shippingFee" value="0" min="0" oninput="updateTotal()">
+      </div>
+      <div class="total-box">
+          <div class="total-row">
+              <span>花材小計：</span>
+              <span id="flowerSubtotal">$0</span>
+          </div>
+          <div class="total-row">
+              <span>包裝 + 提袋：</span>
+              <span id="extraFees">$0</span>
+          </div>
+          <div class="total-row">
+              <span>運費：</span>
+              <span id="shippingDisplay">$0</span>
+          </div>
+          <div class="total-row final">
+              <span>訂單總計：</span>
+              <span id="finalTotal">$0</span>
+          </div>
+      </div>
   </div>
 
-  <button class="btn" style="background: #e53e3e; margin-top:20px; font-size:1.1em; padding:14px;" onclick="submitCheckout()">🔔 送出訂單（即時扣減雲端庫存）</button>
+  <div class="section">
+      <button class="btn btn-success" onclick="submitOrder()" style="width:100%; font-size:1.2em;">
+          ✅ 確認結帳並扣除庫存
+      </button>
+  </div>
 </div>
 
 <script>
@@ -109,9 +143,67 @@ const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFca
 const SPREADSHEET_ID = '1uVdZk4g4WDKgiOB76avI2Mt0Os8FNhrCSTg9dfZ5Q2w';
 const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
 
-let dbItems = {}; let cart = [];
+let flowerData = [];
+let cart = [];
 
-async function loadCloudStock() {
+// 完整顏色排序優先級
+const COLOR_ORDER = {
+  // 紅色系
+  '紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
+  // 粉色系
+  '粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
+  // 桃橘系
+  '桃': 11, '橙': 12, '橘': 13,
+  // 白奶系
+  '白': 14, '奶油': 15, '奶茶': 16,
+  // 黃色系
+  '黃': 17, '淺黃': 18, '淺黃粉': 19,
+  // 紫色系
+  '紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
+  // 藍色系
+  '藍': 25, '淺藍': 26, '深藍': 27,
+  // 其他色
+  '綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
+};
+
+// 智能提取花材主名稱和顏色
+function parseFlowerName(name) {
+  let color = '';
+  let mainName = name;
+  let maxLength = 0;
+  
+  // 找出最長匹配的顏色前綴（處理"淺黃粉"這類複合顏色）
+  for (let c in COLOR_ORDER) {
+      if (name.startsWith(c) && c.length > maxLength) {
+          color = c;
+          maxLength = c.length;
+      }
+  }
+  
+  if (color) {
+      mainName = name.substring(color.length);
+  }
+  
+  return { color, mainName, fullName: name };
+}
+
+// 智能排序函數
+function smartSort(list) {
+  return list.sort((a, b) => {
+      const aInfo = parseFlowerName(a.name);
+      const bInfo = parseFlowerName(b.name);
+      
+      if (aInfo.mainName !== bInfo.mainName) {
+          return aInfo.mainName.localeCompare(bInfo.mainName, 'zh-TW');
+      }
+      
+      const aColorOrder = COLOR_ORDER[aInfo.color] || 999;
+      const bColorOrder = COLOR_ORDER[bInfo.color] || 999;
+      return aColorOrder - bColorOrder;
+  });
+}
+
+async function loadFlowerData() {
   try {
       const cloudRes = await fetch(CLOUD_API).then(r => r.json());
       let currentStock = cloudRes.currentStock || {};
@@ -122,165 +214,157 @@ async function loadCloudStock() {
       
       if (resLedger.values && resLedger.values.length > 1) {
           for (let i = 1; i < resLedger.values.length; i++) {
-              const row = resLedger.values[i]; 
-              if(row.length < 9 || row[1] !== 'flower') continue; 
-              latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3); 
+              const row = resLedger.values[i];
+              if(row.length < 9 || row[1] !== 'flower') continue;
+              latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
           }
       }
       
-      dbItems = {};
-      Object.keys(latestPrices).forEach(name => { 
-          const stock = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
-          // 只顯示有庫存的花材
-          if (stock > 0) {
-              dbItems[name] = { price: latestPrices[name], stock: stock }; 
-          }
-      });
-      renderSelect();
-      document.getElementById('syncStatus').innerText = '☁️ 雲端核心網絡對接成功！';
-  } catch(e) { 
-      document.getElementById('syncStatus').innerText = '⚠️ 雲端握手失敗，請檢查網路。'; 
+      flowerData = Object.keys(latestPrices).map(name => ({
+          name: name,
+          price: latestPrices[name],
+          stock: currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0
+      })).filter(item => item.stock > 0);
+      
+      // 智能排序
+      flowerData = smartSort(flowerData);
+      
+      updateFlowerSelect();
+  } catch(e) {
+      alert('載入花材資料失敗：' + e.message);
   }
 }
 
-function renderSelect() {
-  const select = document.getElementById('itemSelect'); 
-  const currentSelectedValue = select.value;
-  select.innerHTML = '';
-  if(Object.keys(dbItems).length === 0) {
-      select.appendChild(Object.assign(document.createElement('option'), { value: "", text: "目前無現貨花材，請先至後台進貨" }));
+function updateFlowerSelect() {
+  const select = document.getElementById('flowerSelect');
+  select.innerHTML = '<option value="">請選擇花材...</option>';
+  
+  flowerData.forEach((item, idx) => {
+      const stockBadge = item.stock <= 5 ? '⚠️' : '✓';
+      select.innerHTML += `<option value="${idx}">${stockBadge} ${item.name} - $${item.price} (庫存:${item.stock})</option>`;
+  });
+}
+
+function addFlower() {
+  const selectIdx = document.getElementById('flowerSelect').value;
+  const qty = parseInt(document.getElementById('flowerQty').value);
+  
+  if(!selectIdx) { alert('請選擇花材'); return; }
+  if(qty <= 0) { alert('數量必須大於0'); return; }
+  
+  const flower = flowerData[selectIdx];
+  if(qty > flower.stock) {
+      alert(`庫存不足！目前僅剩 ${flower.stock} 支`);
       return;
   }
-  Object.keys(dbItems).forEach(name => { 
-      select.appendChild(Object.assign(document.createElement('option'), { value: name, text: `${name} (單價:$${dbItems[name].price})` })); 
-  });
-  if (currentSelectedValue && dbItems[currentSelectedValue]) select.value = currentSelectedValue;
-  updateStockHint();
-}
-
-function updateStockHint() {
-  const name = document.getElementById('itemSelect').value; if(!name) return;
-  const info = dbItems[name]; const hint = document.getElementById('stockHint');
-  if(!info) return;
-  hint.style.color = '#2e7d32'; 
-  hint.innerText = `💡 雲端系統顯示剩餘：${info.stock} 支`;
-}
-
-function togglePackageColor() { 
-  document.getElementById('packageFieldsGroup').style.display = document.getElementById('needPackage').checked ? 'block' : 'none'; 
-}
-
-function addToCart() {
-  const name = document.getElementById('itemSelect').value; if(!name) return;
-  const qty = parseInt(document.getElementById('buyQty').value) || 0; if(qty <= 0) return;
-  const info = dbItems[name]; if(!info) return;
   
-  const maxStock = info.stock;
-  const existing = cart.find(i => i.name === name);
-  const targetQty = (existing ? existing.qty : 0) + qty;
+  cart.push({
+      name: flower.name,
+      price: flower.price,
+      qty: qty,
+      subtotal: flower.price * qty
+  });
+  
+  updateCart();
+  updateTotal();
+  document.getElementById('flowerQty').value = 1;
+}
 
-  if (targetQty > maxStock) {
-      alert(`⚠️ 庫存不足：${name} 雲端現貨僅剩 ${maxStock} 支`);
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  updateCart();
+  updateTotal();
+}
+
+function updateCart() {
+  const container = document.getElementById('cartContainer');
+  if(cart.length === 0) {
+      container.innerHTML = '<div class="empty-cart">尚未加入任何花材</div>';
       return;
   }
-  if(existing) { existing.qty = targetQty; } else { cart.push({ name: name, qty: qty, price: info.price }); }
-  renderCart();
-}
-
-function removeItem(name) { cart = cart.filter(i => i.name !== name); renderCart(); }
-
-function renderCart() {
-  const container = document.getElementById('cartContainer'); container.innerHTML = '';
-  if(cart.length === 0) { 
-      container.innerHTML = '<p style="text-align:center; color:#999; font-size:0.9em;">尚未選擇花材品項 🌸</p>'; 
-      calculateGrandTotal(); return; 
-  }
-  cart.forEach(item => { 
-      const subtotal = item.price * item.qty; 
-      container.innerHTML += `<div class="cart-item"><div class="item-info"><div class="item-name">${item.name}</div><div class="item-meta">單價 $${item.price} × ${item.qty}支</div></div><div style="font-weight:bold; margin-right:15px; color:#b83b5e;">$${subtotal}</div><button class="btn-del" onclick="removeItem('${item.name}')">刪除</button></div>`; 
-  });
-  calculateGrandTotal();
-}
-
-function calculateGrandTotal() {
-  let flowerSubtotal = 0;
-  cart.forEach(item => { flowerSubtotal += item.price * item.qty; });
-  let packageFee = document.getElementById('needPackage').checked ? (parseFloat(document.getElementById('packagePrice').value) || 0) : 0;
-  let bagFee = document.getElementById('needBag').checked ? 50 : 0;
-  let shippingFee = parseFloat(document.getElementById('shippingFee').value) || 0;
-  const finalGrandTotal = flowerSubtotal + packageFee + bagFee + shippingFee;
   
-  document.getElementById('lblFlowerTotal').innerText = flowerSubtotal;
-  document.getElementById('lblPackageTotal').innerText = packageFee;
-  document.getElementById('lblBagTotal').innerText = bagFee;
-  document.getElementById('lblShippingTotal').innerText = shippingFee;
-  document.getElementById('grandTotal').innerText = finalGrandTotal;
+  container.innerHTML = cart.map((item, idx) => `
+      <div class="cart-item">
+          <div class="cart-item-info">
+              <div class="cart-item-name">🌸 ${item.name}</div>
+              <div class="cart-item-detail">${item.qty} 支 × $${item.price} = $${item.subtotal}</div>
+          </div>
+          <button class="cart-item-remove" onclick="removeFromCart(${idx})">移除</button>
+      </div>
+  `).join('');
 }
 
-async function submitCheckout() {
-  const custName = document.getElementById('custName').value.trim(); 
-  const custPhone = document.getElementById('custPhone').value.trim();
+function updateTotal() {
+  const flowerTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+  const packaging = parseInt(document.getElementById('packagingFee').value) || 0;
+  const bag = parseInt(document.getElementById('bagFee').value) || 0;
+  const shipping = parseInt(document.getElementById('shippingFee').value) || 0;
+  const finalTotal = flowerTotal + packaging + bag + shipping;
+  
+  document.getElementById('flowerSubtotal').textContent = '$' + flowerTotal;
+  document.getElementById('extraFees').textContent = '$' + (packaging + bag);
+  document.getElementById('shippingDisplay').textContent = '$' + shipping;
+  document.getElementById('finalTotal').textContent = '$' + finalTotal;
+}
+
+async function submitOrder() {
+  if(cart.length === 0) { alert('購物車是空的'); return; }
+  
+  const customerName = document.getElementById('customerName').value.trim();
+  const customerPhone = document.getElementById('customerPhone').value.trim();
   const pickupDate = document.getElementById('pickupDate').value;
   const pickupTime = document.getElementById('pickupTime').value;
   
-  if(!custName || !custPhone) { alert('請填寫客戶姓名與電話！'); return; }
-  if(!pickupDate || !pickupTime) { alert('請填寫取貨日期與時間！'); return; }
-  if(cart.length === 0) { alert('購物車內沒有選擇任何花材喔！'); return; }
-
-  document.getElementById('syncStatus').innerText = '⚡ 正在向雲端遞交訂單並鎖定庫存...';
-
-  const flowerSubtotal = parseInt(document.getElementById('lblFlowerTotal').innerText);
-  const pPrice = parseInt(document.getElementById('lblPackageTotal').innerText);
-  const bagPrice = parseInt(document.getElementById('lblBagTotal').innerText);
-  const shippingFee = parseInt(document.getElementById('lblShippingTotal').innerText);
-  const finalTotal = parseInt(document.getElementById('grandTotal').innerText);
-
-  const orderObj = {
-      id: 'ORD_' + Date.now(), 
-      time: new Date().toLocaleTimeString('zh-TW'), 
-      customer: custName, 
-      phone: custPhone,
+  if(!customerName || !customerPhone) {
+      alert('請填寫客戶姓名和電話');
+      return;
+  }
+  
+  const orderData = {
+      action: 'checkout',
+      customerName: customerName,
+      customerPhone: customerPhone,
       pickupDate: pickupDate,
       pickupTime: pickupTime,
       items: cart,
-      flowerTotal: flowerSubtotal,   
-      packagePrice: pPrice,          
-      bagPrice: bagPrice,
-      shippingFee: shippingFee,
-      finalTotal: finalTotal,        
-      needPackage: document.getElementById('needPackage').checked,
-      packageColor: document.getElementById('needPackage').checked ? document.getElementById('packageColor').value.trim() : "",
-      needBag: document.getElementById('needBag').checked
+      packagingFee: parseInt(document.getElementById('packagingFee').value) || 0,
+      bagFee: parseInt(document.getElementById('bagFee').value) || 0,
+      shippingFee: parseInt(document.getElementById('shippingFee').value) || 0
   };
   
   try {
-      await fetch(CLOUD_API, {
-          method: "POST",
-          body: JSON.stringify({ action: "submitOrder", order: orderObj })
-      }).then(r => r.json());
-
-      alert(`🎉 雲端掛單成功！\n取貨日期：${pickupDate} ${pickupTime}\n花束總計：$${finalTotal} 元`);
+      const response = await fetch(CLOUD_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+      });
       
-      document.getElementById('custName').value = ''; 
-      document.getElementById('custPhone').value = '';
-      document.getElementById('pickupDate').value = '';
-      document.getElementById('pickupTime').value = '';
-      document.getElementById('shippingFee').value = '0';
-      document.getElementById('needPackage').checked = false; 
-      document.getElementById('needBag').checked = false;
-      togglePackageColor(); 
-      document.getElementById('packageColor').value = ''; 
-      document.getElementById('packagePrice').value = '300';
-      cart = []; renderCart(); 
-      await loadCloudStock();
-  } catch(e) { alert("發送雲端點單失敗，請檢查網路連線。"); }
+      const result = await response.json();
+      
+      if(result.success) {
+          alert('✅ 結帳成功！訂單編號：' + result.orderId);
+          cart = [];
+          updateCart();
+          updateTotal();
+          document.getElementById('customerName').value = '';
+          document.getElementById('customerPhone').value = '';
+          document.getElementById('pickupDate').value = '';
+          document.getElementById('pickupTime').value = '';
+          document.getElementById('packagingFee').value = 0;
+          document.getElementById('bagFee').value = 0;
+          document.getElementById('shippingFee').value = 0;
+          loadFlowerData();
+      } else {
+          alert('❌ 結帳失敗：' + result.message);
+      }
+  } catch(e) {
+      alert('系統錯誤：' + e.message);
+  }
 }
 
-window.onfocus = function() { loadCloudStock(); };
-window.onload = function() {
-  loadCloudStock();
-  // 預設取貨日期為今天
-  const today = new Date().toISOString().slice(0, 10);
+window.onload = () => {
+  loadFlowerData();
+  const today = new Date().toISOString().split('T')[0];
   document.getElementById('pickupDate').value = today;
 };
 </script>
