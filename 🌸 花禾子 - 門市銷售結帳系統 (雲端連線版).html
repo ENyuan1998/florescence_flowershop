@@ -7,7 +7,7 @@
   <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body { 
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; 
           background: linear-gradient(135deg, #f5f0e8 0%, #e8ddd0 100%); 
           padding: 15px; 
           color: #5d4e37; 
@@ -140,6 +140,10 @@
           color: #5d4e37;
           border: 3px solid #e8ddd0;
       }
+      .amount-highlight input:focus {
+          border-color: #d97706;
+          box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+      }
       .notice-box { 
           background: #fff9f0; 
           border: 2px solid #f4d9a6; 
@@ -220,7 +224,7 @@
           transition: all 0.3s; 
           margin-top: 10px;
       }
-      .btn-submit:hover { 
+      .btn-submit:hover:not(:disabled) { 
           transform: translateY(-2px); 
           box-shadow: 0 6px 20px rgba(139, 115, 85, 0.3); 
       }
@@ -244,25 +248,77 @@
       }
       .success-message {
           display: none;
+          max-width: 700px;
+          margin: 0 auto;
           background: #d4edda;
-          border: 2px solid #c3e6cb;
+          border: 3px solid #c3e6cb;
           color: #155724;
-          padding: 30px;
-          border-radius: 10px;
+          padding: 40px 30px;
+          border-radius: 16px;
           text-align: center;
-          margin: 20px;
+          box-shadow: 0 8px 24px rgba(139, 115, 85, 0.15);
       }
       .success-message h2 {
-          margin-bottom: 15px;
-          font-size: 1.8em;
+          margin-bottom: 20px;
+          font-size: 2em;
       }
       .success-message p {
-          margin: 10px 0;
+          margin: 12px 0;
           font-size: 1.1em;
+          line-height: 1.6;
+      }
+      .success-message .order-info {
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          margin: 20px 0;
+      }
+      .success-message .order-info strong {
+          color: #2e7d32;
+          font-size: 1.3em;
+      }
+      .loading-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 9999;
+          justify-content: center;
+          align-items: center;
+      }
+      .loading-spinner {
+          background: white;
+          padding: 30px;
+          border-radius: 16px;
+          text-align: center;
+      }
+      .spinner {
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #8b7355;
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 20px;
+      }
+      @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
       }
   </style>
 </head>
 <body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p style="font-size: 1.2em; color: #8b7355; font-weight: bold;">⏳ 正在送出訂單...</p>
+      <p style="font-size: 0.9em; color: #666; margin-top: 10px;">請稍候，不要關閉視窗</p>
+  </div>
+</div>
 
 <div class="container" id="formContainer">
   <div class="header">
@@ -270,9 +326,7 @@
       <p>線上訂單填寫系統</p>
   </div>
 
-  <form id="orderForm" method="POST" action="https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec" target="hiddenFrame">
-      <input type="hidden" name="action" value="submitCustomerOrder">
-      
+  <form id="orderForm">
       <!-- 訂購人資訊 -->
       <div class="section">
           <div class="section-title">👤 訂購人資訊</div>
@@ -280,22 +334,22 @@
           <div class="form-row">
               <div class="form-group">
                   <label>姓名 <span class="required">*</span></label>
-                  <input type="text" name="buyerName" required placeholder="請輸入您的姓名">
+                  <input type="text" name="buyerName" id="buyerName" required placeholder="請輸入您的姓名">
               </div>
               <div class="form-group">
                   <label>電話 <span class="required">*</span></label>
-                  <input type="tel" name="buyerPhone" required placeholder="請輸入聯絡電話">
+                  <input type="tel" name="buyerPhone" id="buyerPhone" required placeholder="請輸入聯絡電話">
               </div>
           </div>
 
           <div class="form-row">
               <div class="form-group">
                   <label>取貨日期 <span class="required">*</span></label>
-                  <input type="date" name="pickupDate" required>
+                  <input type="date" name="pickupDate" id="pickupDate" required>
               </div>
               <div class="form-group">
                   <label>取貨時間 <span class="required">*</span></label>
-                  <input type="time" name="pickupTime" required>
+                  <input type="time" name="pickupTime" id="pickupTime" required>
                   <div class="helper-text">營業時間：12:00 - 24:00</div>
               </div>
           </div>
@@ -335,7 +389,7 @@
           
           <div class="form-group">
               <label>商品 <span class="required">*</span></label>
-              <textarea name="product" required placeholder="請描述您想要的花束/花禮內容"></textarea>
+              <textarea name="product" id="product" required placeholder="請描述您想要的花束/花禮內容（例如：玫瑰花束、康乃馨盆花等）"></textarea>
           </div>
       </div>
 
@@ -345,7 +399,7 @@
           
           <div class="form-group">
               <label>包裝顏色 <span class="required">*</span></label>
-              <input type="text" name="packagingColor" required placeholder="請輸入希望的包裝顏色">
+              <input type="text" name="packagingColor" id="packagingColor" required placeholder="請輸入希望的包裝顏色（例如：粉色、白色、香檳色等）">
           </div>
       </div>
 
@@ -378,7 +432,7 @@
           
           <div class="form-group">
               <label>運費金額</label>
-              <input type="number" name="shippingFee" placeholder="請輸入運費金額（到店取貨請填0）" min="0" step="1" value="0">
+              <input type="number" name="shippingFee" id="shippingFee" placeholder="請輸入運費金額（到店取貨請填0）" min="0" step="1" value="0">
               <div class="helper-text">到店取貨請填 0，需配送請填寫運費金額</div>
           </div>
       </div>
@@ -389,7 +443,7 @@
           
           <div class="form-group amount-highlight">
               <label>訂單總金額 <span class="required">*</span></label>
-              <input type="number" name="amount" required placeholder="請輸入訂單總金額" min="0" step="1">
+              <input type="number" name="amount" id="amount" required placeholder="請輸入訂單總金額" min="0" step="1">
               <div class="helper-text">請輸入與店家確認後的訂單總金額（含運費）</div>
           </div>
       </div>
@@ -400,7 +454,7 @@
           
           <div class="form-group">
               <label>卡片內容</label>
-              <textarea name="cardMessage" placeholder="我們有附上一張名片大小的小卡片，有需要幫忙寫什麼嗎？"></textarea>
+              <textarea name="cardMessage" id="cardMessage" placeholder="我們有附上一張名片大小的小卡片，有需要幫忙寫什麼嗎？"></textarea>
               <div class="helper-text">如不需要卡片可留空</div>
           </div>
       </div>
@@ -411,7 +465,7 @@
           
           <div class="form-group">
               <label>備註</label>
-              <textarea name="note" placeholder="其他需求或注意事項"></textarea>
+              <textarea name="note" id="note" placeholder="其他需求或注意事項（例如：加購照片列印、需要統編收據等）"></textarea>
           </div>
       </div>
 
@@ -425,6 +479,9 @@
                   <li>完成付款後，訂單將開始製作（含備貨、包裝等），故無法隨意取消訂單。</li>
                   <li>花材可能會因為市場浮動而缺貨，若想要的花材無法取得，將儘量以相同色系與價格之其他花材作為替代。</li>
                   <li>每個花禮都是設計師親自手作完成，故無法與所提供的照片完全一致，敬請諒解。</li>
+                  <li>為響應環保，本店不主動提供塑料提袋。建議取貨時自備環保袋或加購提袋。</li>
+                  <li>如需協助列印照片，請提前告知。（4*6寸照片一張30元）</li>
+                  <li>如需統編/收據，請主動告知我們，謝謝。</li>
               </ul>
           </div>
 
@@ -442,27 +499,34 @@
               <p>📍 台中市南屯區大墩十四街132號1樓</p>
               <p>📧 florescence.fs@gmail.com</p>
               <p>🕐 營業時間：12:00 - 24:00</p>
+              <p style="font-size: 0.85em; margin-top: 8px; color: #8b7355;">如需要在非營業時間取貨可提前預約溝通</p>
           </div>
       </div>
 
       <!-- 提交按鈕 -->
       <div class="section">
-          <button type="submit" class="btn-submit">✅ 送出訂單</button>
+          <button type="submit" class="btn-submit" id="submitBtn">✅ 送出訂單</button>
       </div>
   </form>
 </div>
 
 <div class="success-message" id="successMessage">
   <h2>✅ 訂單送出成功！</h2>
-  <p>您的訂單編號：<strong id="orderNumber"></strong></p>
-  <p>訂單金額：<strong id="orderAmount"></strong></p>
-  <p style="margin-top: 20px;">我們已收到您的訂單，請盡快完成付款。</p>
+  <div class="order-info">
+      <p>您的訂單已成功送出</p>
+      <p style="margin-top: 10px;">訂單金額：<strong id="orderAmount"></strong></p>
+  </div>
+  <p>我們已收到您的訂單，請盡快完成付款。</p>
   <p>完成付款後，請來電或私訊告知，謝謝！</p>
+  <p style="margin-top: 20px; font-size: 0.9em; color: #666;">📞 聯絡電話：0922-317-535 / 0984-259-170</p>
+  <p style="font-size: 0.85em; color: #666; margin-top: 10px;">訂單編號將由店家確認後提供</p>
 </div>
 
-<iframe name="hiddenFrame" id="hiddenFrame" style="display:none;"></iframe>
-
 <script>
+const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
+
+let isSubmitting = false; // 防止重複提交
+
 function toggleRecipient() {
   const checkbox = document.getElementById('sameAsBuyer');
   const fields = document.getElementById('recipientFields');
@@ -471,52 +535,136 @@ function toggleRecipient() {
   const recipientAddress = document.getElementById('recipientAddress');
   
   if (checkbox.checked) {
+      const buyerName = document.getElementById('buyerName').value;
+      const buyerPhone = document.getElementById('buyerPhone').value;
+      
       fields.style.display = 'none';
       recipientName.required = false;
       recipientPhone.required = false;
       recipientAddress.required = false;
-      recipientName.value = '同上';
-      recipientPhone.value = '同上';
+      recipientName.value = buyerName || '同上';
+      recipientPhone.value = buyerPhone || '同上';
       recipientAddress.value = '同上';
   } else {
       fields.style.display = 'block';
       recipientName.required = true;
       recipientPhone.required = true;
       recipientAddress.required = true;
-      if (recipientName.value === '同上') recipientName.value = '';
-      if (recipientPhone.value === '同上') recipientPhone.value = '';
-      if (recipientAddress.value === '同上') recipientAddress.value = '';
+      if (recipientName.value === '同上' || recipientName.value === document.getElementById('buyerName').value) {
+          recipientName.value = '';
+      }
+      if (recipientPhone.value === '同上' || recipientPhone.value === document.getElementById('buyerPhone').value) {
+          recipientPhone.value = '';
+      }
+      if (recipientAddress.value === '同上') {
+          recipientAddress.value = '';
+      }
   }
 }
 
 document.getElementById('orderForm').addEventListener('submit', function(e) {
-  const submitBtn = document.querySelector('button[type="submit"]');
-  const amount = document.querySelector('input[name="amount"]').value;
+  e.preventDefault();
   
+  // 防止重複提交
+  if (isSubmitting) {
+      alert('訂單正在送出中，請稍候...');
+      return;
+  }
+  
+  const submitBtn = document.getElementById('submitBtn');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  
+  // 設定提交狀態
+  isSubmitting = true;
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ 送出中...';
+  loadingOverlay.style.display = 'flex';
   
-  // 添加時間戳
-  const timestampInput = document.createElement('input');
-  timestampInput.type = 'hidden';
-  timestampInput.name = 'timestamp';
-  timestampInput.value = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
-  this.appendChild(timestampInput);
+  // 收集表單資料
+  const formData = new FormData(e.target);
   
+  // 建立隱藏的 iframe 用於提交
+  let iframe = document.getElementById('submitFrame');
+  if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'submitFrame';
+      iframe.name = 'submitFrame';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+  }
+  
+  // 建立隱藏的表單
+  const hiddenForm = document.createElement('form');
+  hiddenForm.method = 'POST';
+  hiddenForm.action = CLOUD_API;
+  hiddenForm.target = 'submitFrame';
+  
+  // 添加所有表單資料
+  const orderData = {
+      action: 'submitCustomerOrder',
+      buyerName: formData.get('buyerName'),
+      buyerPhone: formData.get('buyerPhone'),
+      pickupDate: formData.get('pickupDate'),
+      pickupTime: formData.get('pickupTime'),
+      recipientName: formData.get('recipientName'),
+      recipientPhone: formData.get('recipientPhone'),
+      recipientAddress: formData.get('recipientAddress'),
+      product: formData.get('product'),
+      packagingColor: formData.get('packagingColor'),
+      bag: formData.get('bag'),
+      shippingFee: formData.get('shippingFee') || '0',
+      amount: formData.get('amount'),
+      cardMessage: formData.get('cardMessage') || '',
+      note: formData.get('note') || '',
+      timestamp: new Date().toLocaleString('zh-TW', { 
+          timeZone: 'Asia/Taipei',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+      })
+  };
+  
+  // 將資料轉為 JSON 並添加到表單
+  for (const [key, value] of Object.entries(orderData)) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      hiddenForm.appendChild(input);
+  }
+  
+  document.body.appendChild(hiddenForm);
+  hiddenForm.submit();
+  
+  // 等待 3 秒後顯示成功訊息
   setTimeout(() => {
+      loadingOverlay.style.display = 'none';
       document.getElementById('formContainer').style.display = 'none';
       document.getElementById('successMessage').style.display = 'block';
-      document.getElementById('orderNumber').textContent = 'CO' + Date.now().toString().slice(-8);
-      document.getElementById('orderAmount').textContent = '$' + parseInt(amount).toLocaleString();
+      document.getElementById('orderAmount').textContent = '$' + parseInt(formData.get('amount')).toLocaleString();
+      
       window.scrollTo(0, 0);
-  }, 2000);
+      document.body.removeChild(hiddenForm);
+      
+      // 5秒後重置提交狀態（允許重新提交，以防失敗）
+      setTimeout(() => {
+          isSubmitting = false;
+      }, 5000);
+  }, 3000);
 });
 
+// 設定最小取貨日期為明天
 window.onload = function() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
-  document.querySelector('input[name="pickupDate"]').min = minDate;
+  document.getElementById('pickupDate').min = minDate;
+  
+  // 設定預設取貨時間為 14:00
+  document.getElementById('pickupTime').value = '14:00';
 };
 </script>
 
