@@ -119,7 +119,7 @@
 
   <div id="tab-customer" class="tab-content">
       <h2 style="color: #8e44ad; border-left: 4px solid #8e44ad;">👤 門市客戶消費統計名冊</h2>
-      <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面自動匯整雲端銷貨單數據，記錄客戶基本聯絡資訊與歷來消費總額。可點擊「編輯」修正姓名與電話（同步雲端）。</p>
+      <p style="font-size:0.85em; color:#666; margin-bottom:15px;">※ 本頁面自動匯整雲端銷貨單數據，記錄客戶基本聯絡資訊與歷來消費總額。</p>
       <div class="card" style="background: #fbf9ff; border-color: #e8d7f5; overflow-x: auto;">
           <table class="report-table">
               <thead>
@@ -129,7 +129,6 @@
                       <th>消費次數</th>
                       <th style="color:#8e44ad;">消費金額統計</th>
                       <th>上次消費日期</th>
-                      <th>操作</th>
                   </tr>
               </thead>
               <tbody id="customerReportBody"></tbody>
@@ -163,13 +162,6 @@
           </table>
       </div>
 
-      <h2>🔍 依品項單獨查詢時段均價</h2>
-      <div class="grid-2">
-          <div class="form-group"><label>選擇花材：</label><select id="searchFlowerSelect" onchange="renderAnalytics('flower')"></select></div>
-          <div class="form-group"><label>選擇包材：</label><select id="searchPaperSelect" onchange="renderAnalytics('paper')"></select></div>
-      </div>
-      <div id="analyticsResult"></div>
-
       <h2 class="flower-title" style="margin-top: 30px;">📜 歷史進貨流水帳</h2>
       <div id="historyLogContainer"></div>
   </div>
@@ -190,7 +182,7 @@
 
       <div class="danger-zone">
           <h3 style="color:#c0392b; margin-top:0;">⚠️ 系統重置危險區</h3>
-          <p style="font-size:0.85em; color:#7f8c8d;">點擊下方按鈕將清除本地緩存並重設雲端庫存。若要清除 Google 試算表上的進貨／銷售歷史，請直接手動刪除試算表內容。</p>
+          <p style="font-size:0.85em; color:#7f8c8d;">點擊下方按鈕將清除本地緩存並重設雲端庫存。</p>
           <button class="btn" style="background:#e53e3e; font-size:1.1em; padding:15px;" onclick="wipeTestDataAndGoLive()">🔥 清除本地測試資料並重設雲端庫存</button>
       </div>
   </div>
@@ -207,8 +199,7 @@ let pendingOrders = [];
 let fixedCosts = [];
 
 async function fetchCloudData() {
-  const isWiped = localStorage.getItem('flower_system_wiped_v8');
-  document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步待處理銷貨單與庫存...';
+  document.getElementById('syncStatus').innerText = '⏳ 正在從中央雲端同步資料...';
   try {
       const cloudRes = await fetch(CLOUD_API).then(r => r.json());
       currentStock = cloudRes.currentStock || {};
@@ -216,20 +207,6 @@ async function fetchCloudData() {
 
       if (cloudRes.salesHistory) {
           localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(cloudRes.salesHistory));
-      }
-
-      const localSales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
-      if (localSales.length > 0 && !localStorage.getItem('flower_sales_migrated_v9')) {
-          document.getElementById('syncStatus').innerText = '⏳ 正在將舊的本地銷售紀錄遷移上雲...';
-          await fetch(CLOUD_API, {
-              method: "POST",
-              body: JSON.stringify({ action: "migrateSales", sales: localSales })
-          });
-          localStorage.setItem('flower_sales_migrated_v9', 'true');
-          const reRes = await fetch(CLOUD_API).then(r => r.json());
-          if (reRes.salesHistory) {
-              localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(reRes.salesHistory));
-          }
       }
 
       const urlFixedCost = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/固定成本?key=${API_KEY}`;
@@ -250,19 +227,15 @@ async function fetchCloudData() {
                   }
               }
           }
-      } catch(e) { console.log('固定成本工作表不存在'); }
-
-      if (isWiped === 'true' && ledgerData.length === 0) {
-          document.getElementById('syncStatus').innerText = '✨ 雲端連線就緒｜目前無進貨歷史紀錄';
-          return;
-      }
+      } catch(e) { console.log('固定成本工作表尚未建立'); }
 
       const urlSpreadsheet = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
       const ssResponse = await fetch(urlSpreadsheet).then(r => r.json());
       if (ssResponse.values && ssResponse.values.length > 1) {
           let cloudLedger = [];
           for (let i = 1; i < ssResponse.values.length; i++) {
-              const row = ssResponse.values[i]; if(row.length < 9) continue;
+              const row = ssResponse.values[i]; 
+              if(row.length < 9) continue;
               cloudLedger.push({
                   id: row[0], type: row[1], date: row[2], name: row[3].trim(),
                   totalQty: parseFloat(row[4])||0, totalCost: parseFloat(row[5])||0,
@@ -271,12 +244,11 @@ async function fetchCloudData() {
           }
           ledgerData = cloudLedger;
           localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
-          localStorage.removeItem('flower_system_wiped_v8');
       }
-      document.getElementById('syncStatus').innerText = '☁️ 跨店雲端資料同步完成！';
+      document.getElementById('syncStatus').innerText = '☁️ 雲端資料同步完成！';
   } catch (e) {
       console.error(e);
-      document.getElementById('syncStatus').innerText = '⚠️ 雲端連線失敗，目前顯示離線暫存快照。';
+      document.getElementById('syncStatus').innerText = '⚠️ 雲端連線失敗，請檢查網路或 API 設定';
   }
 }
 
@@ -297,7 +269,7 @@ function switchTab(tabId) {
   if(tabId === 'tab-avgprice') { updateAvgPriceSelect(); renderAvgPriceAnalysis(); }
   if(tabId === 'tab-fixedcost') renderFixedCostList();
   if(tabId === 'tab-customer') renderCustomerStats();
-  if(tabId === 'tab-history') { calculateSalesStats(); updateSearchSelects(); renderMonthlyReport(); renderAnalytics('flower'); renderHistoryLog(); }
+  if(tabId === 'tab-history') { calculateSalesStats(); renderMonthlyReport(); renderHistoryLog(); }
   if(tabId === 'tab-maintenance') renderMaintenanceInfo();
 }
 
@@ -323,8 +295,7 @@ async function manualBackup() {
 }
 
 async function wipeTestDataAndGoLive() {
-  if(!confirm("確定要清除本地緩存並重設雲端庫存歸零嗎？（試算表的進貨/銷售歷史不會被刪）")) return;
-  localStorage.setItem('flower_system_wiped_v8', 'true');
+  if(!confirm("確定要清除本地緩存並重設雲端庫存歸零嗎？")) return;
   localStorage.removeItem('flowerLedgerDataV8');
 
   await fetch(CLOUD_API, {
@@ -359,27 +330,27 @@ function renderPendingOrders() {
       container.innerHTML += `
           <div class="order-card">
               <div class="order-header">
-                  <span>👤 客戶：${order.customer} (${order.phone})</span>
+                  <span>👤 ${order.customer} (${order.phone})</span>
                   <span>⏱️ ${order.time}</span>
               </div>
               <div style="margin: 8px 0; font-size: 0.9em;">${pickupInfo}</div>
               <div class="order-details">
                   <b>花材明細：</b><br>${itemsHtml}<br>
                   <hr style="border:none; border-top:1px dashed #ffe4e8; margin:6px 0;">
-                  <b>外包裝與提袋需求：</b>${pkgHint}${bagHint}
+                  <b>外包裝：</b>${pkgHint}${bagHint}
               </div>
               <div class="grid-2">
-                  <div class="form-group"><label>🔧 修正外包裝費用 ($)：</label><input type="number" id="fee_${order.id}" value="${pPrice}" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice}, ${sPrice})"></div>
-                  <div class="form-group"><label>✂️ 輸入活動折抵 ($)：</label><input type="number" id="disc_${order.id}" value="0" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice}, ${sPrice})"></div>
+                  <div class="form-group"><label>🔧 修正包裝費 ($)：</label><input type="number" id="fee_${order.id}" value="${pPrice}" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice}, ${sPrice})"></div>
+                  <div class="form-group"><label>✂️ 活動折抵 ($)：</label><input type="number" id="disc_${order.id}" value="0" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice}, ${sPrice})"></div>
               </div>
 
               <div style="background:#fff0f2; padding:12px; border-radius:10px; font-size:0.92em; color:#555; line-height: 1.6; border: 1px dashed #ffccd5;">
-                  <div>1. 花材總計：$${fTotal} 元</div>
-                  <div>2. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span> 元</div>
-                  <div>3. 提袋費用：$${bPrice} 元</div>
-                  <div>4. 運費金額：$${sPrice} 元</div>
+                  <div>1. 花材總計：$${fTotal}</div>
+                  <div>2. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span></div>
+                  <div>3. 提袋費用：$${bPrice}</div>
+                  <div>4. 運費金額：$${sPrice}</div>
                   <div style="font-weight:bold; font-size:1.15em; color:#b83b5e; border-top: 1px solid #ffccd5; margin-top:6px; padding-top:6px;">
-                      5. 花束總計金額：$<span id="final_total_${order.id}">${fTotal + pPrice + bPrice + sPrice}</span> 元
+                      5. 總計：$<span id="final_total_${order.id}">${fTotal + pPrice + bPrice + sPrice}</span>
                   </div>
               </div>
 
@@ -400,7 +371,7 @@ function recalcOrderTotal(id, flowerTotal, bagTotal, shippingTotal) {
 }
 
 async function approveOrder(orderId) {
-  document.getElementById('syncStatus').innerText = '⚡ 正在向雲端提交入帳核銷指令...';
+  document.getElementById('syncStatus').innerText = '⚡ 正在向雲端提交入帳...';
   try {
       const finalAmt = parseFloat(document.getElementById(`final_total_${orderId}`).innerText) || 0;
       let order = pendingOrders.find(o => o.id === orderId);
@@ -431,13 +402,12 @@ async function approveOrder(orderId) {
 
       await fetchCloudData();
       renderPendingOrders();
-      alert(`🎉 雲端核銷入帳成功！本筆業績已同步至所有裝置。`);
+      alert(`🎉 雲端核銷入帳成功！`);
   } catch(e) { alert("核銷失敗：" + e); }
 }
 
 async function deleteOrder(orderId) {
   if(!confirm("確認要作廢退單嗎？")) return;
-  document.getElementById('syncStatus').innerText = '⚡ 正在發送退單指令...';
   try {
       await fetch(CLOUD_API, {
           method: "POST",
@@ -451,11 +421,12 @@ async function deleteOrder(orderId) {
 
 async function saveAllToCloudAndStock() {
   const inputDate = document.getElementById('inputDate').value;
+  if(!inputDate) { alert("請選擇進貨日期！"); return; }
+  
   const cards = document.querySelectorAll('#tab-input .card');
   if(cards.length === 0) { alert("請先新增品項再儲存！"); return; }
 
-  document.getElementById('syncStatus').innerText = '⚡ 正在將新進貨寫入試算表並更新雲端庫存...';
-  localStorage.removeItem('flower_system_wiped_v8');
+  document.getElementById('syncStatus').innerText = '⚡ 正在將新進貨寫入試算表...';
 
   let rowsToUpload = [];
 
@@ -481,7 +452,7 @@ async function saveAllToCloudAndStock() {
           const sellPrice = Math.round(effCost * 3);
 
           rowsToUpload.push([
-              'BATCH_' + Date.now() + Math.floor(Math.random()*10),
+              'BATCH_' + Date.now() + Math.floor(Math.random()*1000),
               isFlower ? 'flower' : 'paper',
               inputDate,
               name,
@@ -512,7 +483,7 @@ async function saveAllToCloudAndStock() {
       }).then(r => r.json());
 
       if(response.status === "success") {
-          alert(`🚀 雲端進貨儲存成功！商品資料已確實寫入試算表。`);
+          alert(`🚀 雲端進貨儲存成功！`);
           document.getElementById('flowerItemsContainer').innerHTML = '';
           document.getElementById('paperItemsContainer').innerHTML = '';
           addItemCard('flower');
@@ -521,7 +492,7 @@ async function saveAllToCloudAndStock() {
           alert("雲端處理失敗: " + response.message);
       }
   } catch(e) {
-      alert("發送雲端網路異常，請確認是否已更新 GAS 總部為最新版程式碼。");
+      alert("發送雲端網路異常：" + e);
   }
 }
 
@@ -550,7 +521,7 @@ function renderCustomerStats() {
   let customerMap = {};
 
   if (historySales.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="color:#999;text-align:center;padding:15px;">暫無銷售紀錄，請確認雲端試算表已有資料</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="color:#999;text-align:center;padding:15px;">暫無銷售紀錄</td></tr>`;
       return;
   }
 
@@ -575,48 +546,14 @@ function renderCustomerStats() {
   customerList.sort((a, b) => b.totalSpent - a.totalSpent);
 
   customerList.forEach(c => {
-      const safeName = c.name.replace(/'/g, "\\'");
-      const safePhone = c.phone.replace(/'/g, "\\'");
       tbody.innerHTML += `<tr>
           <td style="font-weight:bold;">👤 ${c.name}</td>
           <td>📞 ${c.phone}</td>
           <td>${c.count} 次</td>
           <td style="color:#8e44ad; font-weight:bold;">$${c.totalSpent.toLocaleString()}</td>
           <td>📅 ${c.lastDate}</td>
-          <td><button class="btn" style="width:auto;margin:0;padding:4px 10px;font-size:0.8em;background:#8e44ad;" onclick="editCustomer('${safeName}','${safePhone}')">✏️ 編輯</button></td>
       </tr>`;
   });
-}
-
-async function editCustomer(oldName, oldPhone) {
-  const newName = prompt("請輸入新的客戶姓名：", oldName);
-  if (newName === null) return;
-  const newPhone = prompt("請輸入新的聯絡電話：", oldPhone);
-  if (newPhone === null) return;
-
-  let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
-  let targets = historySales.filter(s =>
-      (s.customer || "散客").trim() === oldName && (s.phone || "無").trim() === oldPhone
-  );
-  if (targets.length === 0) { alert("找不到對應的銷售紀錄"); return; }
-
-  document.getElementById('syncStatus').innerText = '⚡ 正在更新雲端客戶資料...';
-  try {
-      for (let s of targets) {
-          await fetch(CLOUD_API, {
-              method: "POST",
-              body: JSON.stringify({
-                  action: "updateSale",
-                  saleId: s.id,
-                  customer: newName.trim(),
-                  phone: newPhone.trim()
-              })
-          });
-      }
-      await fetchCloudData();
-      renderCustomerStats();
-      alert("✅ 客戶資料已更新並同步至雲端！");
-  } catch (e) { alert("更新失敗：" + e); }
 }
 
 function calculateSalesStats() {
@@ -648,7 +585,7 @@ function calculateSalesStats() {
 
 function addItemCard(type) {
   const container = document.getElementById(type === 'flower' ? 'flowerItemsContainer' : 'paperItemsContainer');
-  const cardId = 'card_' + Date.now() + Math.floor(Math.random()*10);
+  const cardId = 'card_' + Date.now() + Math.floor(Math.random()*1000);
   const card = document.createElement('div');
   card.className = 'card';
   card.id = cardId;
@@ -750,33 +687,6 @@ function createStockRow(name) {
   return div;
 }
 
-function updateSearchSelects() {
-  const f = document.getElementById('searchFlowerSelect'); f.innerHTML = '';
-  const p = document.getElementById('searchPaperSelect'); p.innerHTML = '';
-  let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))];
-  let pNames = [...new Set(ledgerData.filter(i => i.type === 'paper').map(i => i.name))];
-  if(fNames.length === 0) fNames = Object.keys(currentStock);
-  fNames.forEach(n => f.appendChild(Object.assign(document.createElement('option'), {value: n, text: n})));
-  pNames.forEach(n => p.appendChild(Object.assign(document.createElement('option'), {value: n, text: n})));
-}
-
-function renderAnalytics(type) {
-  const selectId = type === 'flower' ? 'searchFlowerSelect' : 'searchPaperSelect';
-  const name = document.getElementById(selectId)?.value;
-  const container = document.getElementById('analyticsResult');
-  if(!name) { container.innerHTML='<p style="color:#999; padding: 10px;">無選取商品</p>'; return; }
-  const filtered = ledgerData.filter(i => i.name === name).sort((a,b) => a.date.localeCompare(b.date));
-  const cCost = filtered.length > 0 ? parseFloat(filtered[filtered.length - 1].singleCost || 0) : 0;
-  const stockCount = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
-  container.innerHTML = `<div class="card" style="margin-top:10px;">
-      <h3>📊 ${name} (雲端庫存: ${stockCount})</h3>
-      <div class="grid-2">
-          <div class="result-badge"><div class="label">最新有效成本</div><div>$${cCost.toFixed(1)}</div></div>
-          <div class="result-badge" style="background:#fff0f2;"><div class="label">建議零售價</div><div style="color:#b83b5e; font-weight:bold;">$${Math.round(cCost*3)}</div></div>
-      </div>
-  </div>`;
-}
-
 function renderHistoryLog() {
   const container = document.getElementById('historyLogContainer');
   container.innerHTML = '';
@@ -827,4 +737,118 @@ function renderAvgPriceAnalysis() {
   
   container.innerHTML = `
       <div class="card" style="margin-top:15px; background: #fbf9ff; border-color: #e8d7f5;">
-          <h3 style="color: #8e44ad; margin-top:0;">📊 
+          <h3 style="color: #8e44ad; margin-top:0;">📊 ${name} 平均價格分析</h3>
+          <div class="sales-dashboard" style="grid-template-columns: repeat(2, 1fr);">
+              <div class="sales-card" style="border-color: #e8d7f5;">
+                  <div class="title">近三期均價</div>
+                  <div class="amt" style="color: #8e44ad;">$${avg3.toFixed(1)}</div>
+                  <div style="font-size: 0.75em; color: #999;">(${recent3.length}筆)</div>
+              </div>
+              <div class="sales-card" style="border-color: #e8d7f5;">
+                  <div class="title">本月均價</div>
+                  <div class="amt" style="color: #8e44ad;">$${avgMonth.toFixed(1)}</div>
+                  <div style="font-size: 0.75em; color: #999;">(${monthData.length}筆)</div>
+              </div>
+              <div class="sales-card" style="border-color: #e8d7f5;">
+                  <div class="title">本季均價</div>
+                  <div class="amt" style="color: #8e44ad;">$${avgQuarter.toFixed(1)}</div>
+                  <div style="font-size: 0.75em; color: #999;">(${quarterData.length}筆)</div>
+              </div>
+              <div class="sales-card" style="border-color: #e8d7f5;">
+                  <div class="title">本年均價</div>
+                  <div class="amt" style="color: #8e44ad;">$${avgYear.toFixed(1)}</div>
+                  <div style="font-size: 0.75em; color: #999;">(${yearData.length}筆)</div>
+              </div>
+          </div>
+      </div>
+  `;
+}
+
+async function addFixedCost() {
+  const month = document.getElementById('fixedCostMonth').value;
+  const name = document.getElementById('fixedCostName').value.trim();
+  const amount = parseFloat(document.getElementById('fixedCostAmount').value) || 0;
+  const note = document.getElementById('fixedCostNote').value.trim();
+  
+  if(!month || !name || amount <= 0) {
+      alert('請填寫完整的固定成本資訊！');
+      return;
+  }
+  
+  document.getElementById('syncStatus').innerText = '⚡ 正在儲存固定成本...';
+  try {
+      await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({
+              action: "addFixedCost",
+              month: month,
+              name: name,
+              amount: amount,
+              note: note
+          })
+      }).then(r => r.json());
+      
+      alert('✅ 固定成本已儲存！');
+      document.getElementById('fixedCostMonth').value = '';
+      document.getElementById('fixedCostName').value = '';
+      document.getElementById('fixedCostAmount').value = '';
+      document.getElementById('fixedCostNote').value = '';
+      
+      await fetchCloudData();
+      renderFixedCostList();
+  } catch(e) {
+      alert('儲存失敗：' + e);
+  }
+}
+
+function renderFixedCostList() {
+  const container = document.getElementById('fixedCostList');
+  if(fixedCosts.length === 0) {
+      container.innerHTML = '<p style="color:#999; text-align:center; padding:15px;">尚無固定成本記錄</p>';
+      return;
+  }
+  
+  let grouped = {};
+  fixedCosts.forEach(cost => {
+      if(!grouped[cost.month]) grouped[cost.month] = [];
+      grouped[cost.month].push(cost);
+  });
+  
+  container.innerHTML = '';
+  Object.keys(grouped).sort((a,b) => b.localeCompare(a)).forEach(month => {
+      let monthTotal = grouped[month].reduce((sum, c) => sum + c.amount, 0);
+      let itemsHtml = grouped[month].map(c => `
+          <div class="cost-item">
+              <div class="cost-item-header">
+                  <strong>${c.name}</strong>
+                  <span style="color: #e67e22; font-weight: bold;">$${c.amount.toLocaleString()}</span>
+              </div>
+              ${c.note ? `<div style="font-size: 0.85em; color: #666;">${c.note}</div>` : ''}
+          </div>
+      `).join('');
+      
+      container.innerHTML += `
+          <div class="card" style="background: #fffaf0; border-color: #ffe4b3; margin-bottom: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #ffe4b3; padding-bottom: 8px;">
+                  <h3 style="margin: 0; color: #e67e22;">📅 ${month}</h3>
+                  <span style="font-size: 1.2em; font-weight: bold; color: #e67e22;">合計: $${monthTotal.toLocaleString()}</span>
+              </div>
+              ${itemsHtml}
+          </div>
+      `;
+  });
+}
+
+window.onfocus = function() { fetchCloudData(); };
+window.onload = function() {
+  addItemCard('flower');
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('inputDate').value = today;
+  document.getElementById('stockDate').value = today;
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  document.getElementById('fixedCostMonth').value = thisMonth;
+  fetchCloudData();
+};
+</script>
+</body>
+</html>
