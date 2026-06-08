@@ -78,6 +78,65 @@ const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
 
 let displayList = [];
 
+// 完整顏色排序優先級
+const COLOR_ORDER = {
+  // 紅色系
+  '紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
+  // 粉色系
+  '粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
+  // 桃橘系
+  '桃': 11, '橙': 12, '橘': 13,
+  // 白奶系
+  '白': 14, '奶油': 15, '奶茶': 16,
+  // 黃色系
+  '黃': 17, '淺黃': 18, '淺黃粉': 19,
+  // 紫色系
+  '紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
+  // 藍色系
+  '藍': 25, '淺藍': 26, '深藍': 27,
+  // 其他色
+  '綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
+};
+
+// 智能提取花材主名稱和顏色
+function parseFlowerName(name) {
+  let color = '';
+  let mainName = name;
+  let maxLength = 0;
+  
+  // 找出最長匹配的顏色前綴（處理"淺黃粉"這類複合顏色）
+  for (let c in COLOR_ORDER) {
+      if (name.startsWith(c) && c.length > maxLength) {
+          color = c;
+          maxLength = c.length;
+      }
+  }
+  
+  if (color) {
+      mainName = name.substring(color.length);
+  }
+  
+  return { color, mainName, fullName: name };
+}
+
+// 智能排序函數
+function smartSort(list) {
+  return list.sort((a, b) => {
+      const aInfo = parseFlowerName(a.name);
+      const bInfo = parseFlowerName(b.name);
+      
+      // 先按主名稱排序
+      if (aInfo.mainName !== bInfo.mainName) {
+          return aInfo.mainName.localeCompare(bInfo.mainName, 'zh-TW');
+      }
+      
+      // 同花材按顏色排序
+      const aColorOrder = COLOR_ORDER[aInfo.color] || 999;
+      const bColorOrder = COLOR_ORDER[bInfo.color] || 999;
+      return aColorOrder - bColorOrder;
+  });
+}
+
 async function refreshShowroomData() {
   try {
       const cloudRes = await fetch(CLOUD_API).then(r => r.json());
@@ -119,6 +178,9 @@ async function refreshShowroomData() {
               photo: photoMap[name] || ''
           }; 
       }).filter(item => item.stock > 0); // 只顯示有庫存的花材
+      
+      // 智能排序
+      displayList = smartSort(displayList);
       
       doSearch();
       document.getElementById('syncLabel').innerText = `🔄 雲端即時連線中｜最後刷新：${new Date().toLocaleTimeString('zh-TW')}`;
