@@ -232,7 +232,6 @@ async function fetchCloudData() {
           }
       }
 
-      // 讀取固定成本
       const urlFixedCost = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/固定成本?key=${API_KEY}`;
       try {
           const resFixed = await fetch(urlFixedCost).then(r => r.json());
@@ -281,42 +280,25 @@ async function fetchCloudData() {
   }
 }
 
-async function switchTab(tabId) {
+function switchTab(tabId) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-  if(tabId === 'tab-input') document.querySelectorAll('.tab')[0].classList.add('active');
-  if(tabId === 'tab-order') {
-      document.querySelectorAll('.tab')[1].classList.add('active');
-      renderPendingOrders();
-  }
-  if(tabId === 'tab-stock') {
-      document.querySelectorAll('.tab')[2].classList.add('active');
-      renderStockList();
-  }
-  if(tabId === 'tab-avgprice') {
-      document.querySelectorAll('.tab')[3].classList.add('active');
-      updateAvgPriceSelect();
-      renderAvgPriceAnalysis();
-  }
-  if(tabId === 'tab-fixedcost') {
-      document.querySelectorAll('.tab')[4].classList.add('active');
-      renderFixedCostList();
-  }
-  if(tabId === 'tab-customer') {
-      document.querySelectorAll('.tab')[5].classList.add('active');
-      await fetchCloudData();
-      renderCustomerStats();
-  }
-  if(tabId === 'tab-history') {
-      document.querySelectorAll('.tab')[6].classList.add('active');
-      calculateSalesStats(); updateSearchSelects(); renderMonthlyReport(); renderAnalytics('flower'); renderHistoryLog();
-  }
-  if(tabId === 'tab-maintenance') {
-      document.querySelectorAll('.tab')[7].classList.add('active');
-      renderMaintenanceInfo();
-  }
+  const tabIndex = {
+      'tab-input': 0, 'tab-order': 1, 'tab-stock': 2, 'tab-avgprice': 3,
+      'tab-fixedcost': 4, 'tab-customer': 5, 'tab-history': 6, 'tab-maintenance': 7
+  };
+  
+  document.querySelectorAll('.tab')[tabIndex[tabId]].classList.add('active');
   document.getElementById(tabId).classList.add('active');
+
+  if(tabId === 'tab-order') renderPendingOrders();
+  if(tabId === 'tab-stock') renderStockList();
+  if(tabId === 'tab-avgprice') { updateAvgPriceSelect(); renderAvgPriceAnalysis(); }
+  if(tabId === 'tab-fixedcost') renderFixedCostList();
+  if(tabId === 'tab-customer') renderCustomerStats();
+  if(tabId === 'tab-history') { calculateSalesStats(); updateSearchSelects(); renderMonthlyReport(); renderAnalytics('flower'); renderHistoryLog(); }
+  if(tabId === 'tab-maintenance') renderMaintenanceInfo();
 }
 
 function renderMaintenanceInfo() {
@@ -337,9 +319,7 @@ async function manualBackup() {
       }).then(r => r.json());
       alert('✅ 備份完成！');
       document.getElementById('syncStatus').innerText = '☁️ 備份成功';
-  } catch(e) {
-      alert('備份失敗：' + e);
-  }
+  } catch(e) { alert('備份失敗：' + e); }
 }
 
 async function wipeTestDataAndGoLive() {
@@ -352,10 +332,7 @@ async function wipeTestDataAndGoLive() {
       body: JSON.stringify({ action: "overrideStock", stock: {} })
   });
 
-  ledgerData = [];
-  currentStock = {};
-  pendingOrders = [];
-
+  ledgerData = []; currentStock = {}; pendingOrders = [];
   alert("✨ 本地緩存已清除，雲端庫存已歸零！");
   await fetchCloudData();
   switchTab('tab-input');
@@ -364,4 +341,490 @@ async function wipeTestDataAndGoLive() {
 function renderPendingOrders() {
   const container = document.getElementById('pendingOrdersWorkflow');
   if(pendingOrders.length === 0) {
-      container.innerHTML = `<p style="color:#999; text-
+      container.innerHTML = `<p style="color:#999; text-align:center; padding:15px; background:#fafafa; border-radius:8px;">目前雲端沒有新送出的暫存訂單 ☕</p>`;
+      return;
+  }
+  container.innerHTML = '';
+  pendingOrders.forEach((order) => {
+      let itemsHtml = order.items.map(i => `• ${i.name} × ${i.qty}支 (小計:$${i.price * i.qty})`).join('<br>');
+      let pkgHint = order.needPackage ? `<span style="color:#e67e22; font-weight:bold;">[要包裝] 色系：${order.packageColor || '未填'}</span>` : '<span style="color:#999;">[無包裝需求]</span>';
+      let bagHint = order.needBag ? `<span style="color:#2c97de; font-weight:bold;"> [附透明袋]</span>` : '';
+      let pickupInfo = `<span style="color:#8e44ad;">📅 取貨：${order.pickupDate || '未填'} ${order.pickupTime || ''}</span>`;
+
+      const fTotal = parseFloat(order.flowerTotal) || 0;
+      const pPrice = parseFloat(order.packagePrice) || 0;
+      const bPrice = parseFloat(order.bagPrice) || 0;
+      const sPrice = parseFloat(order.shippingFee) || 0;
+
+      container.innerHTML += `
+          <div class="order-card">
+              <div class="order-header">
+                  <span>👤 客戶：${order.customer} (${order.phone})</span>
+                  <span>⏱️ ${order.time}</span>
+              </div>
+              <div style="margin: 8px 0; font-size: 0.9em;">${pickupInfo}</div>
+              <div class="order-details">
+                  <b>花材明細：</b><br>${itemsHtml}<br>
+                  <hr style="border:none; border-top:1px dashed #ffe4e8; margin:6px 0;">
+                  <b>外包裝與提袋需求：</b>${pkgHint}${bagHint}
+              </div>
+              <div class="grid-2">
+                  <div class="form-group"><label>🔧 修正外包裝費用 ($)：</label><input type="number" id="fee_${order.id}" value="${pPrice}" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice}, ${sPrice})"></div>
+                  <div class="form-group"><label>✂️ 輸入活動折抵 ($)：</label><input type="number" id="disc_${order.id}" value="0" oninput="recalcOrderTotal('${order.id}', ${fTotal}, ${bPrice}, ${sPrice})"></div>
+              </div>
+
+              <div style="background:#fff0f2; padding:12px; border-radius:10px; font-size:0.92em; color:#555; line-height: 1.6; border: 1px dashed #ffccd5;">
+                  <div>1. 花材總計：$${fTotal} 元</div>
+                  <div>2. 包裝費用：$<span id="lbl_review_pkg_${order.id}">${pPrice}</span> 元</div>
+                  <div>3. 提袋費用：$${bPrice} 元</div>
+                  <div>4. 運費金額：$${sPrice} 元</div>
+                  <div style="font-weight:bold; font-size:1.15em; color:#b83b5e; border-top: 1px solid #ffccd5; margin-top:6px; padding-top:6px;">
+                      5. 花束總計金額：$<span id="final_total_${order.id}">${fTotal + pPrice + bPrice + sPrice}</span> 元
+                  </div>
+              </div>
+
+              <div class="grid-2" style="margin-top:10px;">
+                  <button class="btn" style="background:#27ae60; margin:0;" onclick="approveOrder('${order.id}')">✅ 確認入帳</button>
+                  <button class="btn btn-danger" style="margin:0; background:#fadbd8;" onclick="deleteOrder('${order.id}')">🗑️ 捨棄退單</button>
+              </div>
+          </div>
+      `;
+  });
+}
+
+function recalcOrderTotal(id, flowerTotal, bagTotal, shippingTotal) {
+  const fee = parseFloat(document.getElementById(`fee_${id}`).value) || 0;
+  const disc = parseFloat(document.getElementById(`disc_${id}`).value) || 0;
+  document.getElementById(`lbl_review_pkg_${id}`).innerText = fee;
+  document.getElementById(`final_total_${id}`).innerText = Math.max(0, flowerTotal + fee + bagTotal + shippingTotal - disc);
+}
+
+async function approveOrder(orderId) {
+  document.getElementById('syncStatus').innerText = '⚡ 正在向雲端提交入帳核銷指令...';
+  try {
+      const finalAmt = parseFloat(document.getElementById(`final_total_${orderId}`).innerText) || 0;
+      let order = pendingOrders.find(o => o.id === orderId);
+
+      let sale = null;
+      if (order) {
+          sale = {
+              id: order.id,
+              closedDate: new Date().toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-'),
+              closedTimestamp: Date.now(),
+              customer: order.customer,
+              phone: order.phone,
+              pickupDate: order.pickupDate || "",
+              pickupTime: order.pickupTime || "",
+              items: order.items,
+              flowerTotal: parseFloat(order.flowerTotal) || 0,
+              packagePrice: parseFloat(document.getElementById(`fee_${orderId}`).value) || 0,
+              bagPrice: parseFloat(order.bagPrice) || 0,
+              shippingFee: parseFloat(order.shippingFee) || 0,
+              finalAmount: finalAmt
+          };
+      }
+
+      await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({ action: "approveOrder", orderId: orderId, sale: sale })
+      }).then(r => r.json());
+
+      await fetchCloudData();
+      renderPendingOrders();
+      alert(`🎉 雲端核銷入帳成功！本筆業績已同步至所有裝置。`);
+  } catch(e) { alert("核銷失敗：" + e); }
+}
+
+async function deleteOrder(orderId) {
+  if(!confirm("確認要作廢退單嗎？")) return;
+  document.getElementById('syncStatus').innerText = '⚡ 正在發送退單指令...';
+  try {
+      await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({ action: "deleteOrder", orderId: orderId })
+      }).then(r => r.json());
+      await fetchCloudData();
+      renderPendingOrders();
+      alert("🗑️ 訂單已取消，庫存回補完畢。");
+  } catch(e) { alert("退單失敗"); }
+}
+
+async function saveAllToCloudAndStock() {
+  const inputDate = document.getElementById('inputDate').value;
+  const cards = document.querySelectorAll('#tab-input .card');
+  if(cards.length === 0) { alert("請先新增品項再儲存！"); return; }
+
+  document.getElementById('syncStatus').innerText = '⚡ 正在將新進貨寫入試算表並更新雲端庫存...';
+  localStorage.removeItem('flower_system_wiped_v8');
+
+  let rowsToUpload = [];
+
+  cards.forEach(card => {
+      const nameInput = card.querySelector('.p-name');
+      const totalQtyInput = card.querySelector('.p-totalQty');
+      const lossQtyInput = card.querySelector('.p-lossQty');
+      const totalCostInput = card.querySelector('.p-totalCost');
+      if (!nameInput) return;
+
+      const name = nameInput.value.trim();
+      const totalQty = parseFloat(totalQtyInput.value) || 0;
+      const lossQty = parseFloat(lossQtyInput.value) || 0;
+      const totalCost = parseFloat(totalCostInput.value) || 0;
+      const effectiveQty = totalQty - lossQty;
+
+      if(name && effectiveQty > 0) {
+          let oldStock = parseFloat(currentStock[name]) || 0;
+          currentStock[name] = oldStock + effectiveQty;
+
+          const effCost = totalCost / effectiveQty;
+          const isFlower = lossQtyInput.type !== 'hidden';
+          const sellPrice = Math.round(effCost * 3);
+
+          rowsToUpload.push([
+              'BATCH_' + Date.now() + Math.floor(Math.random()*10),
+              isFlower ? 'flower' : 'paper',
+              inputDate,
+              name,
+              totalQty,
+              totalCost,
+              lossQty,
+              effCost,
+              sellPrice
+          ]);
+
+          ledgerData.push({
+              id: 'LOCAL_' + Date.now(), type: isFlower ? 'flower' : 'paper', date: inputDate, name: name,
+              totalQty: totalQty, totalCost: totalCost, lossQty: lossQty, singleCost: effCost, sellPrice: sellPrice
+          });
+      }
+  });
+
+  localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
+
+  try {
+      const response = await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({
+              action: "appendLedgerRows",
+              rows: rowsToUpload,
+              stock: currentStock
+          })
+      }).then(r => r.json());
+
+      if(response.status === "success") {
+          alert(`🚀 雲端進貨儲存成功！商品資料已確實寫入試算表。`);
+          document.getElementById('flowerItemsContainer').innerHTML = '';
+          document.getElementById('paperItemsContainer').innerHTML = '';
+          addItemCard('flower');
+          await fetchCloudData();
+      } else {
+          alert("雲端處理失敗: " + response.message);
+      }
+  } catch(e) {
+      alert("發送雲端網路異常，請確認是否已更新 GAS 總部為最新版程式碼。");
+  }
+}
+
+async function overrideStockFromAudit() {
+  document.getElementById('syncStatus').innerText = '⚡ 正在將盤點數據複寫至雲端...';
+  document.querySelectorAll('.stock-qty-input').forEach(input => {
+      const name = input.getAttribute('data-name');
+      const auditValue = parseFloat(input.value);
+      currentStock[name] = isNaN(auditValue) ? 0 : auditValue;
+  });
+  try {
+      await fetch(CLOUD_API, {
+          method: "POST",
+          body: JSON.stringify({ action: "overrideStock", stock: currentStock })
+      }).then(r => r.json());
+      alert('📊 雲端庫存同步盤點修正完成！');
+      await fetchCloudData();
+  } catch(e) { alert("盤點修正失敗"); }
+}
+
+function renderCustomerStats() {
+  const tbody = document.getElementById('customerReportBody');
+  tbody.innerHTML = '';
+
+  let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
+  let customerMap = {};
+
+  if (historySales.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:#999;text-align:center;padding:15px;">暫無銷售紀錄，請確認雲端試算表已有資料</td></tr>`;
+      return;
+  }
+
+  historySales.forEach(sale => {
+      const name = (sale.customer || "散客").trim();
+      const phone = (sale.phone || "無").trim();
+      const key = name + "_" + phone;
+      const amount = parseFloat(sale.finalAmount) || 0;
+      const saleDate = sale.closedDate || "未記";
+
+      if(!customerMap[key]) {
+          customerMap[key] = { name: name, phone: phone, count: 0, totalSpent: 0, lastDate: saleDate };
+      }
+      customerMap[key].count += 1;
+      customerMap[key].totalSpent += amount;
+      if(new Date(saleDate) > new Date(customerMap[key].lastDate)) {
+          customerMap[key].lastDate = saleDate;
+      }
+  });
+
+  let customerList = Object.values(customerMap);
+  customerList.sort((a, b) => b.totalSpent - a.totalSpent);
+
+  customerList.forEach(c => {
+      const safeName = c.name.replace(/'/g, "\\'");
+      const safePhone = c.phone.replace(/'/g, "\\'");
+      tbody.innerHTML += `<tr>
+          <td style="font-weight:bold;">👤 ${c.name}</td>
+          <td>📞 ${c.phone}</td>
+          <td>${c.count} 次</td>
+          <td style="color:#8e44ad; font-weight:bold;">$${c.totalSpent.toLocaleString()}</td>
+          <td>📅 ${c.lastDate}</td>
+          <td><button class="btn" style="width:auto;margin:0;padding:4px 10px;font-size:0.8em;background:#8e44ad;" onclick="editCustomer('${safeName}','${safePhone}')">✏️ 編輯</button></td>
+      </tr>`;
+  });
+}
+
+async function editCustomer(oldName, oldPhone) {
+  const newName = prompt("請輸入新的客戶姓名：", oldName);
+  if (newName === null) return;
+  const newPhone = prompt("請輸入新的聯絡電話：", oldPhone);
+  if (newPhone === null) return;
+
+  let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
+  let targets = historySales.filter(s =>
+      (s.customer || "散客").trim() === oldName && (s.phone || "無").trim() === oldPhone
+  );
+  if (targets.length === 0) { alert("找不到對應的銷售紀錄"); return; }
+
+  document.getElementById('syncStatus').innerText = '⚡ 正在更新雲端客戶資料...';
+  try {
+      for (let s of targets) {
+          await fetch(CLOUD_API, {
+              method: "POST",
+              body: JSON.stringify({
+                  action: "updateSale",
+                  saleId: s.id,
+                  customer: newName.trim(),
+                  phone: newPhone.trim()
+              })
+          });
+      }
+      await fetchCloudData();
+      renderCustomerStats();
+      alert("✅ 客戶資料已更新並同步至雲端！");
+  } catch (e) { alert("更新失敗：" + e); }
+}
+
+function calculateSalesStats() {
+  let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('zh-TW', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+  let daily = 0, weekly = 0, monthly = 0, quarterly = 0, yearly = 0;
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const nowTs = now.getTime();
+
+  historySales.forEach(sale => {
+      const amt = parseFloat(sale.finalAmount) || 0;
+      const saleTs = sale.closedTimestamp || Date.now();
+      const saleDateStr = sale.closedDate;
+      const diffDays = (nowTs - saleTs) / oneDayMs;
+      if(saleDateStr === todayStr) daily += amt;
+      if(diffDays <= 7) weekly += amt;
+      if(diffDays <= 30) monthly += amt;
+      if(diffDays <= 90) quarterly += amt;
+      if(diffDays <= 365) yearly += amt;
+  });
+
+  document.getElementById('statDaily').innerText = `$${daily.toLocaleString()}`;
+  document.getElementById('statWeekly').innerText = `$${weekly.toLocaleString()}`;
+  document.getElementById('statMonthly').innerText = `$${monthly.toLocaleString()}`;
+  document.getElementById('statQuarterly').innerText = `$${quarterly.toLocaleString()}`;
+  document.getElementById('statYearly').innerText = `$${yearly.toLocaleString()}`;
+}
+
+function addItemCard(type) {
+  const container = document.getElementById(type === 'flower' ? 'flowerItemsContainer' : 'paperItemsContainer');
+  const cardId = 'card_' + Date.now() + Math.floor(Math.random()*10);
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.id = cardId;
+  const lossHtml = type === 'flower'
+      ? `<div class="form-group"><label style="color:var(--flower-color);">⚠️ 預估損耗數量 (支)：</label><input type="number" class="p-lossQty" value="2" oninput="uiCalculate('${cardId}')"></div>`
+      : `<input type="hidden" class="p-lossQty" value="0">`;
+
+  card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+          <span>${type==='flower'?'🌸 花材':'📦 包材'}</span>
+          <button class="btn btn-danger" style="width:auto; margin:0; padding:2px 6px; font-size:0.8em;" onclick="document.getElementById('${cardId}').remove()">移除</button>
+      </div>
+      <div class="form-group"><label>品項名稱：</label><input type="text" class="p-name" value="${type==='flower'?'紅玫瑰':'霧面紙'}"></div>
+      <div class="grid-2">
+          <div class="form-group"><label>數量：</label><input type="number" class="p-totalQty" value="20" oninput="uiCalculate('${cardId}')"></div>
+          <div class="form-group"><label>進價：</label><input type="number" class="p-totalCost" value="600" oninput="uiCalculate('${cardId}')"></div>
+      </div>
+      ${lossHtml}
+      <div class="grid-2" style="margin-top:10px;">
+          <div class="result-badge"><div class="label">有效單支成本</div><div class="val">$<span class="lbl-cost">0.0</span></div></div>
+          <div class="result-badge"><div class="label">建議零售價(3倍)</div><div class="val price">$<span class="lbl-price">0</span></div></div>
+      </div>
+  `;
+  container.appendChild(card);
+  uiCalculate(cardId);
+}
+
+function uiCalculate(cardId) {
+  const card = document.getElementById(cardId); if(!card) return;
+  const tQ = parseFloat(card.querySelector('.p-totalQty').value)||0;
+  const tC = parseFloat(card.querySelector('.p-totalCost').value)||0;
+  const lQ = parseFloat(card.querySelector('.p-lossQty').value)||0;
+  const eff = tQ - lQ;
+  const cost = eff > 0 ? (tC / eff) : 0;
+  card.querySelector('.lbl-cost').innerText = cost.toFixed(1);
+  card.querySelector('.lbl-price').innerText = Math.round(cost*3);
+}
+
+function renderMonthlyReport() {
+  const tbody = document.getElementById('monthlyReportBody');
+  tbody.innerHTML = '';
+  
+  let reportMap = {};
+  ledgerData.forEach(item => {
+      if(!item.date) return;
+      const ym = item.date.substr(0, 7);
+      if(!reportMap[ym]) reportMap[ym] = { flower: 0, paper: 0, fixedCost: 0, revenue: 0 };
+      if(item.type === 'flower') reportMap[ym].flower += parseFloat(item.totalCost) || 0;
+      if(item.type === 'paper') reportMap[ym].paper += parseFloat(item.totalCost) || 0;
+  });
+  
+  fixedCosts.forEach(cost => {
+      const ym = cost.month;
+      if(!reportMap[ym]) reportMap[ym] = { flower: 0, paper: 0, fixedCost: 0, revenue: 0 };
+      reportMap[ym].fixedCost += parseFloat(cost.amount) || 0;
+  });
+  
+  let historySales = JSON.parse(localStorage.getItem('flowerSalesHistoryV8')) || [];
+  historySales.forEach(sale => {
+      if(!sale.closedDate) return;
+      const ym = sale.closedDate.substr(0, 7);
+      if(!reportMap[ym]) reportMap[ym] = { flower: 0, paper: 0, fixedCost: 0, revenue: 0 };
+      reportMap[ym].revenue += parseFloat(sale.finalAmount) || 0;
+  });
+  
+  Object.keys(reportMap).sort((a,b)=>b.localeCompare(a)).forEach(ym => {
+      const totalCost = reportMap[ym].flower + reportMap[ym].paper + reportMap[ym].fixedCost;
+      const profit = reportMap[ym].revenue - totalCost;
+      tbody.innerHTML += `<tr>
+          <td style="font-weight:bold;">📅 ${ym}</td>
+          <td style="color:var(--flower-color);font-weight:bold;">$${reportMap[ym].flower.toLocaleString()}</td>
+          <td style="color:var(--paper-color);font-weight:bold;">$${reportMap[ym].paper.toLocaleString()}</td>
+          <td style="color:#e67e22;font-weight:bold;">$${reportMap[ym].fixedCost.toLocaleString()}</td>
+          <td class="total-highlight">$${totalCost.toLocaleString()}</td>
+          <td style="color:#27ae60;font-weight:bold;">$${reportMap[ym].revenue.toLocaleString()}</td>
+          <td style="color:${profit >= 0 ? '#8e44ad' : '#e53e3e'};font-weight:bold;">$${profit.toLocaleString()}</td>
+      </tr>`;
+  });
+}
+
+function renderStockList() {
+  const f = document.getElementById('flowerStockContainer'); f.innerHTML = '';
+  const p = document.getElementById('paperStockContainer'); p.innerHTML = '';
+  let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))];
+  let pNames = [...new Set(ledgerData.filter(i => i.type === 'paper').map(i => i.name))];
+  Object.keys(currentStock).forEach(name => { if (!ledgerData.some(i => i.name === name)) fNames.push(name); });
+  fNames = [...new Set(fNames)]; pNames = [...new Set(pNames)];
+  if(fNames.length === 0) f.innerHTML = '<p style="color:#999;font-size:0.9em;text-align:center;">暫無商品品項資料</p>';
+  if(pNames.length === 0) p.innerHTML = '<p style="color:#999;font-size:0.9em;text-align:center;">暫無商品品項資料</p>';
+  fNames.forEach(n => { if(n) f.appendChild(createStockRow(n)) });
+  pNames.forEach(n => { if(n) p.appendChild(createStockRow(n)) });
+}
+
+function createStockRow(name) {
+  const qty = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
+  const div = document.createElement('div');
+  div.className = 'stock-row';
+  div.innerHTML = `<span>${name}</span><input type="number" class="stock-qty-input" data-name="${name}" value="${qty}" style="width:80px; text-align:center;">`;
+  return div;
+}
+
+function updateSearchSelects() {
+  const f = document.getElementById('searchFlowerSelect'); f.innerHTML = '';
+  const p = document.getElementById('searchPaperSelect'); p.innerHTML = '';
+  let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))];
+  let pNames = [...new Set(ledgerData.filter(i => i.type === 'paper').map(i => i.name))];
+  if(fNames.length === 0) fNames = Object.keys(currentStock);
+  fNames.forEach(n => f.appendChild(Object.assign(document.createElement('option'), {value: n, text: n})));
+  pNames.forEach(n => p.appendChild(Object.assign(document.createElement('option'), {value: n, text: n})));
+}
+
+function renderAnalytics(type) {
+  const selectId = type === 'flower' ? 'searchFlowerSelect' : 'searchPaperSelect';
+  const name = document.getElementById(selectId)?.value;
+  const container = document.getElementById('analyticsResult');
+  if(!name) { container.innerHTML='<p style="color:#999; padding: 10px;">無選取商品</p>'; return; }
+  const filtered = ledgerData.filter(i => i.name === name).sort((a,b) => a.date.localeCompare(b.date));
+  const cCost = filtered.length > 0 ? parseFloat(filtered[filtered.length - 1].singleCost || 0) : 0;
+  const stockCount = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
+  container.innerHTML = `<div class="card" style="margin-top:10px;">
+      <h3>📊 ${name} (雲端庫存: ${stockCount})</h3>
+      <div class="grid-2">
+          <div class="result-badge"><div class="label">最新有效成本</div><div>$${cCost.toFixed(1)}</div></div>
+          <div class="result-badge" style="background:#fff0f2;"><div class="label">建議零售價</div><div style="color:#b83b5e; font-weight:bold;">$${Math.round(cCost*3)}</div></div>
+      </div>
+  </div>`;
+}
+
+function renderHistoryLog() {
+  const container = document.getElementById('historyLogContainer');
+  container.innerHTML = '';
+  if(ledgerData.length===0) { container.innerHTML = '<p style="color:#999;text-align:center;">尚無流水帳資料</p>'; return; }
+  [...ledgerData].sort((a,b)=>b.date.localeCompare(a.date)).forEach(item => {
+      container.innerHTML += `<div class="history-item">
+          <b>📅 ${item.date} [${item.type==='flower'?'花材':'包材'}] ${item.name}</b><br>
+          進貨成本: $${parseFloat(item.singleCost).toFixed(1)} ➔ 建議零售價: $${item.sellPrice} (總採購量: ${item.totalQty})
+      </div>`;
+  });
+}
+
+function updateAvgPriceSelect() {
+  const select = document.getElementById('avgPriceFlowerSelect');
+  select.innerHTML = '';
+  let fNames = [...new Set(ledgerData.filter(i => i.type === 'flower').map(i => i.name))];
+  if(fNames.length === 0) {
+      select.appendChild(Object.assign(document.createElement('option'), {value: "", text: "暫無花材資料"}));
+      return;
+  }
+  fNames.forEach(n => select.appendChild(Object.assign(document.createElement('option'), {value: n, text: n})));
+}
+
+function renderAvgPriceAnalysis() {
+  const name = document.getElementById('avgPriceFlowerSelect')?.value;
+  const container = document.getElementById('avgPriceResult');
+  if(!name) { container.innerHTML='<p style="color:#999; padding: 10px;">請選擇花材品項</p>'; return; }
+  
+  const filtered = ledgerData.filter(i => i.name === name && i.type === 'flower').sort((a,b) => b.date.localeCompare(a.date));
+  if(filtered.length === 0) { container.innerHTML='<p style="color:#999; padding: 10px;">此花材無進貨記錄</p>'; return; }
+  
+  const recent3 = filtered.slice(0, 3);
+  const avg3 = recent3.length > 0 ? recent3.reduce((sum, i) => sum + (parseFloat(i.singleCost) || 0), 0) / recent3.length : 0;
+  
+  const now = new Date();
+  const thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const monthData = filtered.filter(i => i.date.startsWith(thisMonth));
+  const avgMonth = monthData.length > 0 ? monthData.reduce((sum, i) => sum + (parseFloat(i.singleCost) || 0), 0) / monthData.length : 0;
+  
+  const thisQuarter = Math.floor(now.getMonth() / 3);
+  const quarterStart = now.getFullYear() + '-' + String(thisQuarter * 3 + 1).padStart(2, '0');
+  const quarterData = filtered.filter(i => i.date >= quarterStart);
+  const avgQuarter = quarterData.length > 0 ? quarterData.reduce((sum, i) => sum + (parseFloat(i.singleCost) || 0), 0) / quarterData.length : 0;
+  
+  const thisYear = String(now.getFullYear());
+  const yearData = filtered.filter(i => i.date.startsWith(thisYear));
+  const avgYear = yearData.length > 0 ? yearData.reduce((sum, i) => sum + (parseFloat(i.singleCost) || 0), 0) / yearData.length : 0;
+  
+  container.innerHTML = `
+      <div class="card" style="margin-top:15px; background: #fbf9ff; border-color: #e8d7f5;">
+          <h3 style="color: #8e44ad; margin-top:0;">📊 
