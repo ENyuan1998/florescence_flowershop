@@ -231,6 +231,11 @@
       .btn-submit:active { 
           transform: translateY(0); 
       }
+      .btn-submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+      }
       .required { 
           color: #c97b63; 
           margin-left: 3px; 
@@ -258,14 +263,14 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="formContainer">
   <div class="header">
       <h1>🌸 花禾子 Florescence</h1>
       <p>線上訂單填寫系統</p>
   </div>
 
   <form id="orderForm">
-      <!-- 1. 訂購人資訊 -->
+      <!-- 訂購人資訊 -->
       <div class="section">
           <div class="section-title">👤 訂購人資訊</div>
           
@@ -293,7 +298,7 @@
           </div>
       </div>
 
-      <!-- 2. 收件人資訊 -->
+      <!-- 收件人資訊 -->
       <div class="section">
           <div class="section-title">📦 收件人資訊</div>
           
@@ -321,7 +326,7 @@
           </div>
       </div>
 
-      <!-- 3. 商品資訊 -->
+      <!-- 商品資訊 -->
       <div class="section">
           <div class="section-title">🌸 商品資訊</div>
           
@@ -331,7 +336,7 @@
           </div>
       </div>
 
-      <!-- 4. 包裝顏色 -->
+      <!-- 包裝顏色 -->
       <div class="section">
           <div class="section-title">🎨 包裝顏色</div>
           
@@ -341,7 +346,7 @@
           </div>
       </div>
 
-      <!-- 5. 加購提袋 -->
+      <!-- 加購提袋 -->
       <div class="section">
           <div class="section-title">🛍️ 加購提袋</div>
           
@@ -364,7 +369,7 @@
           </div>
       </div>
 
-      <!-- 6. 運費 -->
+      <!-- 運費 -->
       <div class="section">
           <div class="section-title">🚚 運費</div>
           
@@ -375,7 +380,7 @@
           </div>
       </div>
 
-      <!-- 7. 訂單金額 -->
+      <!-- 訂單金額 -->
       <div class="section">
           <div class="section-title">💰 訂單金額</div>
           
@@ -386,7 +391,7 @@
           </div>
       </div>
 
-      <!-- 8. 卡片內容 -->
+      <!-- 卡片內容 -->
       <div class="section">
           <div class="section-title">💌 卡片內容</div>
           
@@ -397,7 +402,7 @@
           </div>
       </div>
 
-      <!-- 9. 備註 -->
+      <!-- 備註 -->
       <div class="section">
           <div class="section-title">📝 備註</div>
           
@@ -509,7 +514,7 @@ document.getElementById('orderForm').addEventListener('submit', async function(e
   };
   
   try {
-      const submitBtn = e.target.querySelector('.btn-submit');
+      const submitBtn = document.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       submitBtn.textContent = '⏳ 送出中...';
       
@@ -522,7 +527,7 @@ document.getElementById('orderForm').addEventListener('submit', async function(e
       const result = await response.json();
       
       if (result.success) {
-          document.querySelector('.container').style.display = 'none';
+          document.getElementById('formContainer').style.display = 'none';
           document.getElementById('successMessage').style.display = 'block';
           document.getElementById('orderNumber').textContent = result.orderNumber;
           document.getElementById('orderAmount').textContent = '$' + parseInt(formData.get('amount')).toLocaleString();
@@ -534,8 +539,11 @@ document.getElementById('orderForm').addEventListener('submit', async function(e
       }
   } catch(e) {
       alert('❌ 系統錯誤：' + e.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = '✅ 送出訂單';
+      const submitBtn = document.querySelector('button[type="submit"]');
+      if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '✅ 送出訂單';
+      }
   }
 });
 
