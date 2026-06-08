@@ -1,43 +1,42 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌸 花禾子 - 門市夥伴查價與現貨看板 (雲端版)</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #fff5f6; margin: 0; padding: 12px; color: #4a4a4a; }
-        .header { background: #ff91a4; color: #fff; padding: 15px; border-radius: 14px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(255, 145, 164, 0.2); }
-        .header h1 { margin: 0; font-size: 1.3em; letter-spacing: 1px; }
-        .search-box { position: sticky; top: 10px; z-index: 100; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(255, 182, 193, 0.15); }
-        input[type="text"] { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ffccd5; font-size: 1.1em; box-sizing: border-box; outline: none; background: white; }
-        input[type="text"]:focus { border-color: #ff91a4; box-shadow: 0 0 0 3px rgba(255, 145, 164, 0.2); }
-        .status-bar { text-align: center; font-size: 0.85em; color: #666; margin-bottom: 10px; font-weight: bold; }
-        .showcase-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        @media(min-width: 550px) { .showcase-grid { grid-template-columns: 1fr 1fr; } }
-        .item-card { background: white; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 10px rgba(255, 182, 193, 0.1); border: 1px solid #ffe4e8; transition: transform 0.2s; }
-        .item-card:hover { transform: translateY(-2px); }
-        .title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .item-name { font-size: 1.2em; font-weight: bold; color: #333; }
-        .price-tag { font-size: 1.5em; font-weight: 900; color: #b83b5e; }
-        .price-tag::before { content: "$"; font-size: 0.6em; margin-right: 2px; }
-        .stock-row { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed #ffe4e8; font-size: 0.95em; }
-        .stock-badge { padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
-        .stock-in { background-color: #e8f5e9; color: #2e7d32; }
-        .stock-out { background-color: #fff3e0; color: #ef6c00; }
-        .stock-empty { background-color: #ffebee; color: #c62828; }
-        .stock-over賣 { background-color: #f3e5f5; color: #6a1b9a; border: 1px dashed #8e44ad; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌸 花禾子 - 門市夥伴查價與現貨看板 (雲端版)</title>
+  <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #fff5f6; margin: 0; padding: 12px; color: #4a4a4a; }
+      .header { background: #ff91a4; color: #fff; padding: 15px; border-radius: 14px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(255, 145, 164, 0.2); }
+      .header h1 { margin: 0; font-size: 1.3em; letter-spacing: 1px; }
+      .search-box { position: sticky; top: 10px; z-index: 100; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(255, 182, 193, 0.15); }
+      input[type="text"] { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ffccd5; font-size: 1.1em; box-sizing: border-box; outline: none; background: white; }
+      input[type="text"]:focus { border-color: #ff91a4; box-shadow: 0 0 0 3px rgba(255, 145, 164, 0.2); }
+      .status-bar { text-align: center; font-size: 0.85em; color: #666; margin-bottom: 10px; font-weight: bold; }
+      .showcase-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+      @media(min-width: 550px) { .showcase-grid { grid-template-columns: 1fr 1fr; } }
+      .item-card { background: white; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 10px rgba(255, 182, 193, 0.1); border: 1px solid #ffe4e8; transition: transform 0.2s; }
+      .item-card:hover { transform: translateY(-2px); }
+      .item-image { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; background: #f5f5f5; }
+      .title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+      .item-name { font-size: 1.2em; font-weight: bold; color: #333; }
+      .price-tag { font-size: 1.5em; font-weight: 900; color: #b83b5e; }
+      .price-tag::before { content: "$"; font-size: 0.6em; margin-right: 2px; }
+      .stock-row { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed #ffe4e8; font-size: 0.95em; }
+      .stock-badge { padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
+      .stock-in { background-color: #e8f5e9; color: #2e7d32; }
+      .stock-out { background-color: #fff3e0; color: #ef6c00; }
+  </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>🌸 花禾子 - 門市夥伴查價與現貨看板 (雲端版)</h1>
+  <h1>🌸 花禾子 - 門市夥伴查價與現貨看板 (雲端版)</h1>
 </div>
 
 <div class="status-bar" id="syncLabel">⏳ 正在與中央雲端總部同步中...</div>
 
 <div class="search-box">
-    <input type="text" id="keyword" placeholder="🔍 輸入關鍵字快速尋找花材品項或價格...">
+  <input type="text" id="keyword" placeholder="🔍 輸入關鍵字快速尋找花材品項或價格...">
 </div>
 
 <div class="showcase-grid" id="gridContainer"></div>
@@ -50,84 +49,100 @@ const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
 let displayList = [];
 
 async function refreshShowroomData() {
-    try {
-        const cloudRes = await fetch(CLOUD_API).then(r => r.json());
-        let currentStock = cloudRes.currentStock || {};
+  try {
+      const cloudRes = await fetch(CLOUD_API).then(r => r.json());
+      let currentStock = cloudRes.currentStock || {};
 
-        const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
-        const resLedger = await fetch(urlLedger).then(r => r.json());
-        let latestPrices = {};
-        
-        if (resLedger.values && resLedger.values.length > 1) {
-            for (let i = 1; i < resLedger.values.length; i++) {
-                const row = resLedger.values[i]; 
-                if(row.length < 9 || row[1] !== 'flower') continue; 
-                latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
-            }
-        }
-        
-        displayList = Object.keys(latestPrices).map(name => { 
-            return { 
-                name: name, 
-                price: latestPrices[name], 
-                stock: currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0 
-            }; 
-        });
-        
-        doSearch();
-        document.getElementById('syncLabel').innerText = `🔄 雲端即時連線中｜最後刷新：${new Date().toLocaleTimeString('zh-TW')}`;
-    } catch(e) { 
-        console.error(e);
-        document.getElementById('syncLabel').innerText = '💡 連線異常，正等待重試...'; 
-    }
+      const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
+      const resLedger = await fetch(urlLedger).then(r => r.json());
+      let latestPrices = {};
+      
+      // 讀取花材照片
+      const urlPhotos = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/花材照片?key=${API_KEY}`;
+      let photoMap = {};
+      try {
+          const resPhotos = await fetch(urlPhotos).then(r => r.json());
+          if (resPhotos.values && resPhotos.values.length > 1) {
+              for (let i = 1; i < resPhotos.values.length; i++) {
+                  const row = resPhotos.values[i];
+                  if (row.length >= 2) {
+                      photoMap[row[0].trim()] = row[1].trim();
+                  }
+              }
+          }
+      } catch(e) { console.log('花材照片工作表不存在'); }
+      
+      if (resLedger.values && resLedger.values.length > 1) {
+          for (let i = 1; i < resLedger.values.length; i++) {
+              const row = resLedger.values[i]; 
+              if(row.length < 9 || row[1] !== 'flower') continue; 
+              latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
+          }
+      }
+      
+      displayList = Object.keys(latestPrices).map(name => { 
+          const stock = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
+          return { 
+              name: name, 
+              price: latestPrices[name], 
+              stock: stock,
+              photo: photoMap[name] || ''
+          }; 
+      }).filter(item => item.stock > 0); // 只顯示有庫存的花材
+      
+      doSearch();
+      document.getElementById('syncLabel').innerText = `🔄 雲端即時連線中｜最後刷新：${new Date().toLocaleTimeString('zh-TW')}`;
+  } catch(e) { 
+      console.error(e);
+      document.getElementById('syncLabel').innerText = '💡 連線異常，正等待重試...'; 
+  }
 }
 
 function doSearch() {
-    const k = document.getElementById('keyword').value.toLowerCase().trim();
-    const container = document.getElementById('gridContainer'); 
-    container.innerHTML = '';
-    
-    const filtered = displayList.filter(item => item.name.toLowerCase().includes(k));
-    if(filtered.length === 0) { 
-        container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#999; font-weight:bold;">找不到符合的花材品項 ☕</div>`; 
-        return; 
-    }
-    
-    filtered.forEach(item => {
-        let badgeClass = 'stock-in'; 
-        let badgeText = `現貨 ${item.stock} 支`;
-        
-        if (item.stock < 0) {
-            badgeClass = 'stock-over賣';
-            badgeText = `⚠️ 現場超賣 (欠 ${Math.abs(item.stock)} 支)`;
-        } else if (item.stock === 0) {
-            badgeClass = 'stock-empty';
-            badgeText = `無現貨`;
-        } else if (item.stock > 0 && item.stock <= 5) {
-            badgeClass = 'stock-out';
-            badgeText = `緊張 (剩 ${item.stock} 支)`;
-        }
-        
-        container.innerHTML += `
-            <div class="item-card">
-                <div class="title-row">
-                    <div class="item-name">🌸 ${item.name}</div>
-                    <div class="price-tag">${item.price.toLocaleString()}</div>
-                </div>
-                <div class="stock-row">
-                    <span style="color:#888; font-size:0.85em;">建議零售價</span>
-                    <span class="stock-badge ${badgeClass}">${badgeText}</span>
-                </div>
-            </div>
-        `;
-    });
+  const k = document.getElementById('keyword').value.toLowerCase().trim();
+  const container = document.getElementById('gridContainer'); 
+  container.innerHTML = '';
+  
+  const filtered = displayList.filter(item => item.name.toLowerCase().includes(k));
+  if(filtered.length === 0) { 
+      container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#999; font-weight:bold;">找不到符合的花材品項 ☕</div>`; 
+      return; 
+  }
+  
+  filtered.forEach(item => {
+      let badgeClass = 'stock-in'; 
+      let badgeText = `現貨 ${item.stock} 支`;
+      
+      if (item.stock > 0 && item.stock <= 5) {
+          badgeClass = 'stock-out';
+          badgeText = `緊張 (剩 ${item.stock} 支)`;
+      }
+      
+      const photoHtml = item.photo 
+          ? `<img src="${item.photo}" class="item-image" alt="${item.name}" onerror="this.style.display='none'">` 
+          : '';
+      
+      container.innerHTML += `
+          <div class="item-card">
+              ${photoHtml}
+              <div class="title-row">
+                  <div class="item-name">🌸 ${item.name}</div>
+                  <div class="price-tag">${item.price.toLocaleString()}</div>
+              </div>
+              <div class="stock-row">
+                  <span style="color:#888; font-size:0.85em;">建議零售價</span>
+                  <span class="stock-badge ${badgeClass}">${badgeText}</span>
+              </div>
+          </div>
+      `;
+  });
 }
 
 document.getElementById('keyword').oninput = doSearch;
 window.onfocus = () => { refreshShowroomData(); };
 window.onload = () => { 
-    refreshShowroomData(); 
-    setInterval(refreshShowroomData, 20000); // 雲端看板每 20 秒自動背後重新整理刷新
+  refreshShowroomData(); 
+  setInterval(refreshShowroomData, 20000);
 };
 </script>
 </body>
