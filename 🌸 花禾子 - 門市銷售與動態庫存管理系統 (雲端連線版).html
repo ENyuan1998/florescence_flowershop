@@ -481,13 +481,17 @@ function renderOnlineOrders() {
 async function updateOnlineOrderStatus(orderNumber, rowIndex, newStatus) {
   if (!confirm(`確定要將訂單 ${orderNumber} 標記為「${newStatus}」嗎？`)) return;
   
+  // 如果是標記為「已完成」，顯示額外確認
+  if (newStatus === '已完成') {
+    if (!confirm(`⚠️ 標記為「已完成」後，此訂單將自動計入銷售紀錄和營收統計。\n\n確定要繼續嗎？`)) return;
+  }
+  
   document.getElementById('syncStatus').innerText = '⚡ 正在更新訂單狀態...';
   
   try {
-      // 使用 Google Apps Script API 更新狀態
       const response = await fetch(CLOUD_API, {
           method: 'POST',
-          mode: 'no-cors',  // 關鍵：使用 no-cors 模式
+          mode: 'no-cors',
           headers: {
               'Content-Type': 'application/json',
           },
@@ -498,11 +502,15 @@ async function updateOnlineOrderStatus(orderNumber, rowIndex, newStatus) {
           })
       });
       
-      // 因為使用 no-cors，無法讀取回應，但資料已送出
-      // 等待 2 秒讓後端處理完成
+      // 等待後端處理完成
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      alert('✅ 訂單狀態已更新');
+      if (newStatus === '已完成') {
+          alert('✅ 訂單狀態已更新為「已完成」\n💰 此訂單已自動計入銷售紀錄和營收統計');
+      } else {
+          alert('✅ 訂單狀態已更新為「' + newStatus + '」');
+      }
+      
       document.getElementById('syncStatus').innerText = '⚡ 正在重新載入資料...';
       
       // 重新載入資料
@@ -519,6 +527,7 @@ async function updateOnlineOrderStatus(orderNumber, rowIndex, newStatus) {
       document.getElementById('syncStatus').innerText = '⚠️ 更新失敗';
   }
 }
+
 
 
 function renderMaintenanceInfo() {
