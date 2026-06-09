@@ -1,72 +1,270 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌸 花禾子 - 門市夥伴查價與現貨看板 (雲端版)</title>
-  <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #fff5f6; margin: 0; padding: 12px; color: #4a4a4a; }
-      .header { background: #ff91a4; color: #fff; padding: 15px; border-radius: 14px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(255, 145, 164, 0.2); }
-      .header h1 { margin: 0; font-size: 1.3em; letter-spacing: 1px; }
-      .search-box { position: sticky; top: 10px; z-index: 100; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(255, 182, 193, 0.15); }
-      input[type="text"] { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ffccd5; font-size: 1.1em; box-sizing: border-box; outline: none; background: white; }
-      input[type="text"]:focus { border-color: #ff91a4; box-shadow: 0 0 0 3px rgba(255, 145, 164, 0.2); }
-      .status-bar { text-align: center; font-size: 0.85em; color: #666; margin-bottom: 10px; font-weight: bold; }
-      .showcase-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-      @media(min-width: 550px) { .showcase-grid { grid-template-columns: 1fr 1fr; } }
-      .item-card { background: white; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(255, 182, 193, 0.1); border: 1px solid #ffe4e8; transition: transform 0.2s; }
-      .item-card:hover { transform: translateY(-2px); }
-      .title-row { 
-          display: flex; 
-          justify-content: space-between; 
-          align-items: center; 
-          margin-bottom: 12px; 
-          gap: 10px;
-      }
-      .item-name { 
-          font-size: 1.2em; 
-          font-weight: bold; 
-          color: #333; 
-          flex-shrink: 0;
-      }
-      .item-image-container {
-          flex: 1;
-          height: 150px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          min-width: 0;
-      }
-      .item-image { 
-          max-width: 100%;
-          max-height: 150px;
-          object-fit: contain;
-          display: block;
-      }
-      .price-tag { 
-          font-size: 1.5em; 
-          font-weight: 900; 
-          color: #b83b5e; 
-          flex-shrink: 0;
-      }
-      .price-tag::before { content: "$"; font-size: 0.6em; margin-right: 2px; }
-      .stock-row { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed #ffe4e8; font-size: 0.95em; }
-      .stock-badge { padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
-      .stock-in { background-color: #e8f5e9; color: #2e7d32; }
-      .stock-out { background-color: #fff3e0; color: #ef6c00; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 花禾子 - 門市夥伴查價與現貨看板</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; 
+        background: linear-gradient(135deg, #fff5f6 0%, #ffe8eb 100%); 
+        padding: 15px; 
+        color: #4a4a4a;
+        min-height: 100vh;
+    }
+    .header { 
+        background: linear-gradient(135deg, #ff91a4 0%, #ff6b85 100%); 
+        color: white; 
+        padding: 25px 20px; 
+        border-radius: 16px; 
+        text-align: center; 
+        margin-bottom: 20px; 
+        box-shadow: 0 6px 20px rgba(255, 145, 164, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .header::before {
+        content: '🌸';
+        position: absolute;
+        font-size: 120px;
+        opacity: 0.1;
+        top: -20px;
+        right: -20px;
+        transform: rotate(-15deg);
+    }
+    .header h1 { 
+        margin: 0; 
+        font-size: 1.6em; 
+        letter-spacing: 1px;
+        position: relative;
+        z-index: 1;
+    }
+    .header .subtitle {
+        font-size: 0.9em;
+        margin-top: 8px;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+    .search-box { 
+        position: sticky; 
+        top: 15px; 
+        z-index: 100; 
+        margin-bottom: 20px; 
+        box-shadow: 0 6px 20px rgba(255, 182, 193, 0.2);
+        animation: slideDown 0.5s ease-out;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    input[type="text"] { 
+        width: 100%; 
+        padding: 16px 20px; 
+        border-radius: 14px; 
+        border: 3px solid #ffccd5; 
+        font-size: 1.1em; 
+        box-sizing: border-box; 
+        outline: none; 
+        background: white;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+    input[type="text"]:focus { 
+        border-color: #ff91a4; 
+        box-shadow: 0 0 0 4px rgba(255, 145, 164, 0.15);
+        transform: translateY(-2px);
+    }
+    input[type="text"]::placeholder {
+        color: #b89ba0;
+    }
+    .status-bar { 
+        text-align: center; 
+        font-size: 0.9em; 
+        color: #666; 
+        margin-bottom: 15px; 
+        font-weight: 600;
+        padding: 10px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(255, 182, 193, 0.1);
+    }
+    .showcase-grid { 
+        display: grid; 
+        grid-template-columns: 1fr; 
+        gap: 15px;
+        animation: fadeIn 0.6s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @media(min-width: 550px) { 
+        .showcase-grid { grid-template-columns: 1fr 1fr; } 
+    }
+    @media(min-width: 900px) { 
+        .showcase-grid { grid-template-columns: 1fr 1fr 1fr; } 
+    }
+    .item-card { 
+        background: white; 
+        border-radius: 16px; 
+        padding: 20px; 
+        display: flex; 
+        flex-direction: column; 
+        box-shadow: 0 4px 15px rgba(255, 182, 193, 0.12); 
+        transition: all 0.3s;
+        animation: cardIn 0.4s ease-out;
+    }
+    @keyframes cardIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .item-card:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 8px 25px rgba(255, 145, 164, 0.25);
+    }
+    .item-name { 
+        font-size: 1.4em; 
+        font-weight: bold; 
+        color: #333; 
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .item-image-container {
+        width: 100%;
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+    .item-image { 
+        max-width: 100%;
+        max-height: 220px;
+        object-fit: cover;
+        display: block;
+        border-radius: 10px;
+        transition: transform 0.3s;
+    }
+    .item-card:hover .item-image {
+        transform: scale(1.05);
+    }
+    .price-section {
+        text-align: center;
+    }
+    .price-tag { 
+        font-size: 2em; 
+        font-weight: 900; 
+        color: #ff6b85; 
+        text-shadow: 0 2px 4px rgba(255, 107, 133, 0.2);
+        margin-bottom: 8px;
+    }
+    .price-tag::before { 
+        content: "$"; 
+        font-size: 0.6em; 
+        margin-right: 2px; 
+    }
+    .stock-badge { 
+        display: inline-block;
+        padding: 6px 14px; 
+        border-radius: 20px; 
+        font-weight: bold; 
+        font-size: 0.9em;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    .stock-badge:hover {
+        transform: scale(1.05);
+    }
+    .stock-in { 
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); 
+        color: #2e7d32; 
+    }
+    .stock-out { 
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); 
+        color: #ef6c00; 
+    }
+    .empty-state {
+        grid-column: 1/-1;
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+        font-weight: bold;
+        font-size: 1.1em;
+        background: white;
+        border-radius: 16px;
+    }
+    .empty-state::before {
+        content: '🔍';
+        display: block;
+        font-size: 4em;
+        margin-bottom: 15px;
+    }
+    .stats-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .stat-card {
+        flex: 1;
+        min-width: 150px;
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(255, 182, 193, 0.1);
+    }
+    .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #ff6b85;
+        margin-bottom: 5px;
+    }
+    .stat-label {
+        font-size: 0.85em;
+        color: #888;
+        font-weight: 600;
+    }
+    .no-photo-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4em;
+        color: #e8ddd0;
+    }
+</style>
 </head>
 <body>
 
 <div class="header">
-  <h1>🌸 花禾子 - 門市夥伴查價與現貨看板 (雲端版)</h1>
+<h1>🌸 花禾子 Florescence</h1>
+<div class="subtitle">門市夥伴查價與現貨看板 · 雲端即時連線</div>
 </div>
 
 <div class="status-bar" id="syncLabel">⏳ 正在與中央雲端總部同步中...</div>
 
+<div class="stats-bar" id="statsBar" style="display:none;">
+  <div class="stat-card">
+      <div class="stat-number" id="totalItems">0</div>
+      <div class="stat-label">品項總數</div>
+  </div>
+  <div class="stat-card">
+      <div class="stat-number" id="displayItems">0</div>
+      <div class="stat-label">顯示品項</div>
+  </div>
+  <div class="stat-card">
+      <div class="stat-number" id="lowStock">0</div>
+      <div class="stat-label">庫存緊張</div>
+  </div>
+</div>
+
 <div class="search-box">
-  <input type="text" id="keyword" placeholder="🔍 輸入關鍵字快速尋找花材品項或價格...">
+<input type="text" id="keyword" placeholder="🔍 輸入關鍵字快速尋找花材品項或價格...">
 </div>
 
 <div class="showcase-grid" id="gridContainer"></div>
@@ -78,163 +276,166 @@ const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
 
 let displayList = [];
 
-// 完整顏色排序優先級
 const COLOR_ORDER = {
-  // 紅色系
-  '紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
-  // 粉色系
-  '粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
-  // 桃橘系
-  '桃': 11, '橙': 12, '橘': 13,
-  // 白奶系
-  '白': 14, '奶油': 15, '奶茶': 16,
-  // 黃色系
-  '黃': 17, '淺黃': 18, '淺黃粉': 19,
-  // 紫色系
-  '紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
-  // 藍色系
-  '藍': 25, '淺藍': 26, '深藍': 27,
-  // 其他色
-  '綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
+'紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
+'粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
+'桃': 11, '橙': 12, '橘': 13,
+'白': 14, '奶油': 15, '奶茶': 16,
+'黃': 17, '淺黃': 18, '淺黃粉': 19,
+'紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
+'藍': 25, '淺藍': 26, '深藍': 27,
+'綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
 };
 
-// 智能提取花材主名稱和顏色
 function parseFlowerName(name) {
-  let color = '';
-  let mainName = name;
-  let maxLength = 0;
-  
-  // 找出最長匹配的顏色前綴（處理"淺黃粉"這類複合顏色）
-  for (let c in COLOR_ORDER) {
-      if (name.startsWith(c) && c.length > maxLength) {
-          color = c;
-          maxLength = c.length;
-      }
-  }
-  
-  if (color) {
-      mainName = name.substring(color.length);
-  }
-  
-  return { color, mainName, fullName: name };
+let color = '';
+let mainName = name;
+let maxLength = 0;
+
+for (let c in COLOR_ORDER) {
+    if (name.startsWith(c) && c.length > maxLength) {
+        color = c;
+        maxLength = c.length;
+    }
 }
 
-// 智能排序函數
+if (color) {
+    mainName = name.substring(color.length);
+}
+
+return { color, mainName, fullName: name };
+}
+
 function smartSort(list) {
-  return list.sort((a, b) => {
-      const aInfo = parseFlowerName(a.name);
-      const bInfo = parseFlowerName(b.name);
-      
-      // 先按主名稱排序
-      if (aInfo.mainName !== bInfo.mainName) {
-          return aInfo.mainName.localeCompare(bInfo.mainName, 'zh-TW');
-      }
-      
-      // 同花材按顏色排序
-      const aColorOrder = COLOR_ORDER[aInfo.color] || 999;
-      const bColorOrder = COLOR_ORDER[bInfo.color] || 999;
-      return aColorOrder - bColorOrder;
-  });
+return list.sort((a, b) => {
+    const aInfo = parseFlowerName(a.name);
+    const bInfo = parseFlowerName(b.name);
+    
+    if (aInfo.mainName !== bInfo.mainName) {
+        return aInfo.mainName.localeCompare(bInfo.mainName, 'zh-TW');
+    }
+    
+    const aColorOrder = COLOR_ORDER[aInfo.color] || 999;
+    const bColorOrder = COLOR_ORDER[bInfo.color] || 999;
+    return aColorOrder - bColorOrder;
+});
 }
 
 async function refreshShowroomData() {
-  try {
-      const cloudRes = await fetch(CLOUD_API).then(r => r.json());
-      let currentStock = cloudRes.currentStock || {};
+try {
+    const cloudRes = await fetch(CLOUD_API).then(r => r.json()).catch(err => {
+        console.log('fetch 雲端 API 失敗：', err);
+        return { currentStock: {} };
+    });
+    
+    let currentStock = cloudRes.currentStock || {};
 
-      const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
-      const resLedger = await fetch(urlLedger).then(r => r.json());
-      let latestPrices = {};
-      
-      // 讀取花材照片
-      const urlPhotos = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/花材照片?key=${API_KEY}`;
-      let photoMap = {};
-      try {
-          const resPhotos = await fetch(urlPhotos).then(r => r.json());
-          if (resPhotos.values && resPhotos.values.length > 1) {
-              for (let i = 1; i < resPhotos.values.length; i++) {
-                  const row = resPhotos.values[i];
-                  if (row.length >= 2) {
-                      photoMap[row[0].trim()] = row[1].trim();
-                  }
-              }
-          }
-      } catch(e) { console.log('花材照片工作表不存在'); }
-      
-      if (resLedger.values && resLedger.values.length > 1) {
-          for (let i = 1; i < resLedger.values.length; i++) {
-              const row = resLedger.values[i]; 
-              if(row.length < 9 || row[1] !== 'flower') continue; 
-              latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
-          }
-      }
-      
-      displayList = Object.keys(latestPrices).map(name => { 
-          const stock = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
-          return { 
-              name: name, 
-              price: latestPrices[name], 
-              stock: stock,
-              photo: photoMap[name] || ''
-          }; 
-      }).filter(item => item.stock > 0); // 只顯示有庫存的花材
-      
-      // 智能排序
-      displayList = smartSort(displayList);
-      
-      doSearch();
-      document.getElementById('syncLabel').innerText = `🔄 雲端即時連線中｜最後刷新：${new Date().toLocaleTimeString('zh-TW')}`;
-  } catch(e) { 
-      console.error(e);
-      document.getElementById('syncLabel').innerText = '💡 連線異常，正等待重試...'; 
-  }
+    const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
+    const resLedger = await fetch(urlLedger).then(r => r.json()).catch(err => {
+        console.log('fetch 進貨紀錄失敗：', err);
+        return { values: [] };
+    });
+    
+    let latestPrices = {};
+    
+    const urlPhotos = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/花材照片?key=${API_KEY}`;
+    let photoMap = {};
+    try {
+        const resPhotos = await fetch(urlPhotos).then(r => r.json());
+        if (resPhotos.values && resPhotos.values.length > 1) {
+            for (let i = 1; i < resPhotos.values.length; i++) {
+                const row = resPhotos.values[i];
+                if (row.length >= 2) {
+                    photoMap[row[0].trim()] = row[1].trim();
+                }
+            }
+        }
+    } catch(e) { console.log('花材照片工作表不存在'); }
+    
+    if (resLedger.values && resLedger.values.length > 1) {
+        for (let i = 1; i < resLedger.values.length; i++) {
+            const row = resLedger.values[i]; 
+            if(row.length < 9 || row[1] !== 'flower') continue; 
+            latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
+        }
+    }
+    
+    displayList = Object.keys(latestPrices).map(name => { 
+        const stock = currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0;
+        return { 
+            name: name, 
+            price: latestPrices[name], 
+            stock: stock,
+            photo: photoMap[name] || ''
+        }; 
+    }).filter(item => item.stock > 0);
+    
+    displayList = smartSort(displayList);
+    
+    updateStats();
+    doSearch();
+    document.getElementById('syncLabel').innerText = `✅ 雲端即時連線中 · 最後更新：${new Date().toLocaleTimeString('zh-TW')}`;
+} catch(e) { 
+    console.error(e);
+    document.getElementById('syncLabel').innerText = '⚠️ 連線異常，正等待重試...'; 
+}
+}
+
+function updateStats() {
+const lowStockCount = displayList.filter(item => item.stock > 0 && item.stock <= 5).length;
+document.getElementById('totalItems').textContent = displayList.length;
+document.getElementById('lowStock').textContent = lowStockCount;
+document.getElementById('statsBar').style.display = 'flex';
 }
 
 function doSearch() {
-  const k = document.getElementById('keyword').value.toLowerCase().trim();
-  const container = document.getElementById('gridContainer'); 
-  container.innerHTML = '';
-  
-  const filtered = displayList.filter(item => item.name.toLowerCase().includes(k));
-  if(filtered.length === 0) { 
-      container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#999; font-weight:bold;">找不到符合的花材品項 ☕</div>`; 
-      return; 
-  }
-  
-  filtered.forEach(item => {
-      let badgeClass = 'stock-in'; 
-      let badgeText = `現貨 ${item.stock} 支`;
-      
-      if (item.stock > 0 && item.stock <= 5) {
-          badgeClass = 'stock-out';
-          badgeText = `緊張 (剩 ${item.stock} 支)`;
-      }
-      
-      const photoHtml = item.photo 
-          ? `<div class="item-image-container"><img src="${item.photo}" class="item-image" alt="${item.name}" onerror="this.parentElement.style.display='none'"></div>` 
-          : '<div class="item-image-container"></div>';
-      
-      container.innerHTML += `
-          <div class="item-card">
-              <div class="title-row">
-                  <div class="item-name">🌸 ${item.name}</div>
-                  ${photoHtml}
-                  <div class="price-tag">${item.price.toLocaleString()}</div>
-              </div>
-              <div class="stock-row">
-                  <span style="color:#888; font-size:0.85em;">建議零售價</span>
-                  <span class="stock-badge ${badgeClass}">${badgeText}</span>
-              </div>
-          </div>
-      `;
-  });
+const k = document.getElementById('keyword').value.toLowerCase().trim();
+const container = document.getElementById('gridContainer'); 
+container.innerHTML = '';
+
+const filtered = displayList.filter(item => 
+    item.name.toLowerCase().includes(k) || 
+    item.price.toString().includes(k)
+);
+
+document.getElementById('displayItems').textContent = filtered.length;
+
+if(filtered.length === 0) { 
+    container.innerHTML = `<div class="empty-state">找不到符合「${k}」的花材品項</div>`; 
+    return; 
+}
+
+filtered.forEach(item => {
+    let badgeClass = 'stock-in'; 
+    let badgeText = `現貨 ${item.stock} 支`;
+    
+    if (item.stock > 0 && item.stock <= 5) {
+        badgeClass = 'stock-out';
+        badgeText = `⚠️ 剩 ${item.stock} 支`;
+    }
+    
+    const photoHtml = item.photo 
+        ? `<div class="item-image-container"><img src="${item.photo}" class="item-image" alt="${item.name}" onerror="this.parentElement.innerHTML='<div class=no-photo-placeholder>🌸</div>'"></div>` 
+        : '<div class="item-image-container"><div class="no-photo-placeholder">🌸</div></div>';
+    
+    container.innerHTML += `
+        <div class="item-card">
+            <div class="item-name">🌸 ${item.name}</div>
+            ${photoHtml}
+            <div class="price-section">
+                <div class="price-tag">${item.price.toLocaleString()}</div>
+                <span class="stock-badge ${badgeClass}">${badgeText}</span>
+            </div>
+        </div>
+    `;
+});
 }
 
 document.getElementById('keyword').oninput = doSearch;
 window.onfocus = () => { refreshShowroomData(); };
 window.onload = () => { 
-  refreshShowroomData(); 
-  setInterval(refreshShowroomData, 20000);
+refreshShowroomData(); 
+setInterval(refreshShowroomData, 20000);
 };
 </script>
 </body>
