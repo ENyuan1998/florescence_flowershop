@@ -3,670 +3,370 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌸 花禾子 - 線上訂單填寫</title>
+  <title>🌸 花禾子 - 銷售結帳系統</title>
   <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { 
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; 
-          background: linear-gradient(135deg, #f5f0e8 0%, #e8ddd0 100%); 
-          padding: 15px; 
-          color: #5d4e37; 
-          min-height: 100vh;
-      }
-      .container { 
-          max-width: 700px; 
-          margin: 0 auto; 
-          background: #faf8f5; 
-          border-radius: 16px; 
-          box-shadow: 0 8px 24px rgba(139, 115, 85, 0.15); 
-          overflow: hidden; 
-          margin-bottom: 30px;
-      }
-      .header { 
-          background: linear-gradient(135deg, #c9a882 0%, #b89968 100%); 
-          color: white; 
-          padding: 30px 20px; 
-          text-align: center; 
-      }
-      .header h1 { font-size: 1.8em; margin-bottom: 8px; }
-      .header p { font-size: 0.95em; opacity: 0.95; }
-      .section { padding: 25px 20px; border-bottom: 2px solid #e8ddd0; }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #f5f0e8 0%, #e8ddd0 100%); padding: 15px; color: #5d4e37; }
+      .container { max-width: 800px; margin: 0 auto; background: #faf8f5; border-radius: 16px; box-shadow: 0 8px 24px rgba(139, 115, 85, 0.15); overflow: hidden; }
+      .header { background: linear-gradient(135deg, #c9a882 0%, #b89968 100%); color: white; padding: 20px; text-align: center; }
+      .header h1 { font-size: 1.5em; margin-bottom: 5px; }
+      .section { padding: 20px; border-bottom: 1px solid #e8ddd0; }
       .section:last-child { border-bottom: none; }
-      .section-title { 
-          font-size: 1.3em; 
-          font-weight: bold; 
-          color: #8b7355; 
-          margin-bottom: 18px; 
-          display: flex; 
-          align-items: center; 
-          gap: 8px; 
-          padding-bottom: 10px;
-          border-bottom: 2px dashed #e8ddd0;
-      }
-      .form-group { margin-bottom: 18px; }
-      .form-group label { 
-          display: block; 
-          font-size: 0.95em; 
-          color: #6b5d4f; 
-          margin-bottom: 6px; 
-          font-weight: 600; 
-      }
-      .form-group input, .form-group select, .form-group textarea { 
-          width: 100%; 
-          padding: 12px; 
-          border: 2px solid #e8ddd0; 
-          border-radius: 8px; 
-          font-size: 1em; 
-          transition: all 0.3s; 
-          background: white;
-          font-family: inherit;
-      }
-      .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
-          outline: none; 
-          border-color: #b89968; 
-          box-shadow: 0 0 0 3px rgba(184, 153, 104, 0.1); 
-      }
-      .form-group textarea { 
-          resize: vertical; 
-          min-height: 80px; 
-      }
-      .form-row { 
-          display: grid; 
-          grid-template-columns: 1fr 1fr; 
-          gap: 15px; 
-      }
-      @media(max-width: 600px) {
-          .form-row { grid-template-columns: 1fr; }
-      }
-      .checkbox-group { 
-          display: flex; 
-          align-items: center; 
-          gap: 10px; 
-          padding: 12px; 
-          background: #f5f0e8; 
-          border-radius: 8px; 
-          border: 2px solid #e8ddd0;
-      }
-      .checkbox-group input[type="checkbox"] { 
-          width: 20px; 
-          height: 20px; 
-          cursor: pointer; 
-      }
-      .checkbox-group label { 
-          margin: 0; 
-          cursor: pointer; 
-          font-weight: normal;
-      }
-      .radio-group { 
-          display: flex; 
-          gap: 15px; 
-          flex-wrap: wrap; 
-      }
-      .radio-option { 
-          display: flex; 
-          align-items: center; 
-          gap: 8px; 
-          padding: 10px 15px; 
-          background: #f5f0e8; 
-          border-radius: 8px; 
-          border: 2px solid #e8ddd0; 
-          cursor: pointer; 
-          transition: all 0.3s;
-      }
-      .radio-option:hover { 
-          border-color: #b89968; 
-          background: #ebe2d5; 
-      }
-      .radio-option input[type="radio"] { 
-          width: 18px; 
-          height: 18px; 
-          cursor: pointer; 
-      }
-      .amount-highlight {
-          background: linear-gradient(135deg, #fff9f0 0%, #ffe8d0 100%);
-          border: 3px solid #f4d9a6;
-          padding: 20px;
-          border-radius: 12px;
-          margin: 15px 0;
-      }
-      .amount-highlight label {
-          font-size: 1.1em;
-          color: #8b7355;
-          font-weight: bold;
-      }
-      .amount-highlight input {
-          font-size: 1.3em;
-          font-weight: bold;
-          color: #5d4e37;
-          border: 3px solid #e8ddd0;
-      }
-      .amount-highlight input:focus {
-          border-color: #d97706;
-          box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
-      }
-      .notice-box { 
-          background: #fff9f0; 
-          border: 2px solid #f4d9a6; 
-          border-radius: 10px; 
-          padding: 18px; 
-          margin: 20px 0; 
-      }
-      .notice-title { 
-          font-weight: bold; 
-          color: #d97706; 
-          margin-bottom: 12px; 
-          font-size: 1.1em; 
-      }
-      .notice-box ul { 
-          list-style: none; 
-          padding-left: 0; 
-      }
-      .notice-box li { 
-          padding: 6px 0; 
-          padding-left: 20px; 
-          position: relative; 
-          font-size: 0.9em; 
-          line-height: 1.6; 
-          color: #6b5d4f;
-      }
-      .notice-box li:before { 
-          content: "•"; 
-          position: absolute; 
-          left: 5px; 
-          color: #d97706; 
-          font-weight: bold; 
-      }
-      .bank-info { 
-          background: #e8f4e8; 
-          border: 2px solid #a8d5a8; 
-          border-radius: 10px; 
-          padding: 18px; 
-          margin: 15px 0; 
-      }
-      .bank-info-title { 
-          font-weight: bold; 
-          color: #2e7d32; 
-          margin-bottom: 10px; 
-          font-size: 1.1em; 
-      }
-      .bank-info p { 
-          margin: 5px 0; 
-          font-size: 0.95em; 
-          color: #5d4e37; 
-      }
-      .contact-info { 
-          background: #f5f0e8; 
-          border: 2px solid #e8ddd0; 
-          border-radius: 10px; 
-          padding: 18px; 
-          text-align: center; 
-          margin-top: 15px; 
-      }
-      .contact-info h3 { 
-          color: #8b7355; 
-          margin-bottom: 12px; 
-      }
-      .contact-info p { 
-          margin: 6px 0; 
-          font-size: 0.95em; 
-          color: #6b5d4f; 
-      }
-      .btn-submit { 
-          width: 100%; 
-          padding: 16px; 
-          background: linear-gradient(135deg, #8b7355 0%, #6b5d4f 100%); 
-          color: white; 
-          border: none; 
-          border-radius: 10px; 
-          font-size: 1.2em; 
-          font-weight: bold; 
-          cursor: pointer; 
-          transition: all 0.3s; 
-          margin-top: 10px;
-      }
-      .btn-submit:hover:not(:disabled) { 
-          transform: translateY(-2px); 
-          box-shadow: 0 6px 20px rgba(139, 115, 85, 0.3); 
-      }
-      .btn-submit:active { 
-          transform: translateY(0); 
-      }
-      .btn-submit:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-          transform: none;
-      }
-      .required { 
-          color: #c97b63; 
-          margin-left: 3px; 
-      }
-      .helper-text { 
-          font-size: 0.85em; 
-          color: #8b7355; 
-          margin-top: 5px; 
-          font-style: italic; 
-      }
-      .success-message {
-          display: none;
-          max-width: 700px;
-          margin: 0 auto;
-          background: #d4edda;
-          border: 3px solid #c3e6cb;
-          color: #155724;
-          padding: 40px 30px;
-          border-radius: 16px;
-          text-align: center;
-          box-shadow: 0 8px 24px rgba(139, 115, 85, 0.15);
-      }
-      .success-message h2 {
-          margin-bottom: 20px;
-          font-size: 2em;
-      }
-      .success-message p {
-          margin: 12px 0;
-          font-size: 1.1em;
-          line-height: 1.6;
-      }
-      .success-message .order-info {
-          background: white;
-          padding: 20px;
-          border-radius: 10px;
-          margin: 20px 0;
-      }
-      .success-message .order-info strong {
-          color: #2e7d32;
-          font-size: 1.3em;
-      }
-      .loading-overlay {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.5);
-          z-index: 9999;
-          justify-content: center;
-          align-items: center;
-      }
-      .loading-spinner {
-          background: white;
-          padding: 30px;
-          border-radius: 16px;
-          text-align: center;
-      }
-      .spinner {
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid #8b7355;
-          border-radius: 50%;
-          width: 50px;
-          height: 50px;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 20px;
-      }
-      @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-      }
+      .section-title { font-size: 1.2em; font-weight: bold; color: #8b7355; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+      .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+      .form-group { display: flex; flex-direction: column; }
+      .form-group label { font-size: 0.9em; color: #6b5d4f; margin-bottom: 5px; font-weight: 500; }
+      .form-group input, .form-group select { padding: 12px; border: 2px solid #e8ddd0; border-radius: 8px; font-size: 1em; transition: all 0.3s; background: white; }
+      .form-group input:focus, .form-group select:focus { outline: none; border-color: #b89968; box-shadow: 0 0 0 3px rgba(184, 153, 104, 0.1); }
+      .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+      .btn-primary { background: #b89968; color: white; }
+      .btn-primary:hover { background: #a68958; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(184, 153, 104, 0.3); }
+      .btn-success { background: #8b7355; color: white; }
+      .btn-success:hover { background: #7a6449; transform: translateY(-2px); }
+      .btn-secondary { background: #e8ddd0; color: #6b5d4f; }
+      .btn-secondary:hover { background: #d4c4b0; }
+      .cart-item { background: #f5f0e8; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e8ddd0; }
+      .cart-item-info { flex: 1; }
+      .cart-item-name { font-weight: bold; color: #5d4e37; margin-bottom: 4px; }
+      .cart-item-detail { font-size: 0.9em; color: #8b7355; }
+      .cart-item-remove { background: #c97b63; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
+      .cart-item-remove:hover { background: #b56b53; }
+      .total-box { background: linear-gradient(135deg, #f5f0e8 0%, #ebe2d5 100%); padding: 20px; border-radius: 12px; margin-top: 15px; border: 2px solid #e8ddd0; }
+      .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; color: #5d4e37; }
+      .total-row.final { font-size: 1.5em; font-weight: bold; color: #8b7355; padding-top: 10px; border-top: 2px dashed #b89968; }
+      .empty-cart { text-align: center; padding: 40px; color: #b89968; }
+      .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: bold; margin-left: 8px; }
+      .status-success { background: #d4e8d4; color: #2e7d32; }
+      .status-warning { background: #ffe8d0; color: #d97706; }
   </style>
 </head>
 <body>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-spinner">
-      <div class="spinner"></div>
-      <p style="font-size: 1.2em; color: #8b7355; font-weight: bold;">⏳ 正在送出訂單...</p>
-      <p style="font-size: 0.9em; color: #666; margin-top: 10px;">請稍候，不要關閉視窗</p>
-  </div>
-</div>
-
-<div class="container" id="formContainer">
+<div class="container">
   <div class="header">
-      <h1>🌸 花禾子 Florescence</h1>
-      <p>線上訂單填寫系統</p>
+      <h1>🌸 花禾子 - 銷售結帳系統</h1>
+      <div style="font-size:0.9em; margin-top:5px;">即時庫存連動</div>
   </div>
 
-  <form id="orderForm">
-      <!-- 訂購人資訊 -->
-      <div class="section">
-          <div class="section-title">👤 訂購人資訊</div>
-          
-          <div class="form-row">
-              <div class="form-group">
-                  <label>姓名 <span class="required">*</span></label>
-                  <input type="text" name="buyerName" id="buyerName" required placeholder="請輸入您的姓名">
-              </div>
-              <div class="form-group">
-                  <label>電話 <span class="required">*</span></label>
-                  <input type="tel" name="buyerPhone" id="buyerPhone" required placeholder="請輸入聯絡電話">
-              </div>
-          </div>
-
-          <div class="form-row">
-              <div class="form-group">
-                  <label>取貨日期 <span class="required">*</span></label>
-                  <input type="date" name="pickupDate" id="pickupDate" required>
-              </div>
-              <div class="form-group">
-                  <label>取貨時間 <span class="required">*</span></label>
-                  <input type="time" name="pickupTime" id="pickupTime" required>
-                  <div class="helper-text">營業時間：12:00 - 24:00</div>
-              </div>
-          </div>
-      </div>
-
-      <!-- 收件人資訊 -->
-      <div class="section">
-          <div class="section-title">📦 收件人資訊</div>
-          
-          <div class="checkbox-group" style="margin-bottom: 15px;">
-              <input type="checkbox" id="sameAsBuyer" onchange="toggleRecipient()">
-              <label for="sameAsBuyer">收件人與訂購人相同</label>
-          </div>
-
-          <div id="recipientFields">
-              <div class="form-row">
-                  <div class="form-group">
-                      <label>收件人姓名 <span class="required">*</span></label>
-                      <input type="text" name="recipientName" id="recipientName" required placeholder="請輸入收件人姓名">
-                  </div>
-                  <div class="form-group">
-                      <label>收件人電話 <span class="required">*</span></label>
-                      <input type="tel" name="recipientPhone" id="recipientPhone" required placeholder="請輸入收件人電話">
-                  </div>
-              </div>
-
-              <div class="form-group">
-                  <label>收件地址 <span class="required">*</span></label>
-                  <input type="text" name="recipientAddress" id="recipientAddress" required placeholder="請輸入完整收件地址">
-              </div>
-          </div>
-      </div>
-
-      <!-- 商品資訊 -->
-      <div class="section">
-          <div class="section-title">🌸 商品資訊</div>
-          
+  <div class="section">
+      <div class="section-title">📝 客戶資訊</div>
+      <div class="form-row">
           <div class="form-group">
-              <label>商品 <span class="required">*</span></label>
-              <textarea name="product" id="product" required placeholder="請描述您想要的花束/花禮內容（例如：玫瑰花束、康乃馨盆花等）"></textarea>
+              <label>客戶姓名</label>
+              <input type="text" id="customerName" placeholder="請輸入客戶姓名">
           </div>
-      </div>
-
-      <!-- 包裝顏色 -->
-      <div class="section">
-          <div class="section-title">🎨 包裝顏色</div>
-          
           <div class="form-group">
-              <label>包裝顏色 <span class="required">*</span></label>
-              <input type="text" name="packagingColor" id="packagingColor" required placeholder="請輸入希望的包裝顏色（例如：粉色、白色、香檳色等）">
+              <label>聯絡電話</label>
+              <input type="tel" id="customerPhone" placeholder="請輸入聯絡電話">
           </div>
       </div>
-
-      <!-- 加購提袋 -->
-      <div class="section">
-          <div class="section-title">🛍️ 加購提袋</div>
-          
+      <div class="form-row">
           <div class="form-group">
-              <label>是否加購提袋？</label>
-              <div class="radio-group">
-                  <label class="radio-option">
-                      <input type="radio" name="bag" value="不需要" checked>
-                      <span>不需要</span>
-                  </label>
-                  <label class="radio-option">
-                      <input type="radio" name="bag" value="紙質提袋 $20">
-                      <span>紙質提袋 $20</span>
-                  </label>
-                  <label class="radio-option">
-                      <input type="radio" name="bag" value="塑料提袋 $50">
-                      <span>塑料提袋 $50</span>
-                  </label>
-              </div>
+              <label>取貨日期</label>
+              <input type="date" id="pickupDate">
           </div>
-      </div>
-
-      <!-- 運費 -->
-      <div class="section">
-          <div class="section-title">🚚 運費</div>
-          
           <div class="form-group">
-              <label>運費金額</label>
-              <input type="number" name="shippingFee" id="shippingFee" placeholder="請輸入運費金額（到店取貨請填0）" min="0" step="1" value="0">
-              <div class="helper-text">到店取貨請填 0，需配送請填寫運費金額</div>
+              <label>取貨時間</label>
+              <input type="time" id="pickupTime">
           </div>
       </div>
-
-      <!-- 訂單金額 -->
-      <div class="section">
-          <div class="section-title">💰 訂單金額</div>
-          
-          <div class="form-group amount-highlight">
-              <label>訂單總金額 <span class="required">*</span></label>
-              <input type="number" name="amount" id="amount" required placeholder="請輸入訂單總金額" min="0" step="1">
-              <div class="helper-text">請輸入與店家確認後的訂單總金額（含運費）</div>
-          </div>
-      </div>
-
-      <!-- 卡片內容 -->
-      <div class="section">
-          <div class="section-title">💌 卡片內容</div>
-          
-          <div class="form-group">
-              <label>卡片內容</label>
-              <textarea name="cardMessage" id="cardMessage" placeholder="我們有附上一張名片大小的小卡片，有需要幫忙寫什麼嗎？"></textarea>
-              <div class="helper-text">如不需要卡片可留空</div>
-          </div>
-      </div>
-
-      <!-- 備註 -->
-      <div class="section">
-          <div class="section-title">📝 備註</div>
-          
-          <div class="form-group">
-              <label>備註</label>
-              <textarea name="note" id="note" placeholder="其他需求或注意事項（例如：加購照片列印、需要統編收據等）"></textarea>
-          </div>
-      </div>
-
-      <!-- 注意事項 -->
-      <div class="section">
-          <div class="notice-box">
-              <div class="notice-title">⚠️ 注意事項</div>
-              <ul>
-                  <li>填寫訂單後，請確認好商品/金額，並以【全額轉帳/現金支付】。支付完成後才算預定成功喔！</li>
-                  <li>為保障雙方權益，若尚未完成付款，訂單將無法開始製作。</li>
-                  <li>完成付款後，訂單將開始製作（含備貨、包裝等），故無法隨意取消訂單。</li>
-                  <li>花材可能會因為市場浮動而缺貨，若想要的花材無法取得，將儘量以相同色系與價格之其他花材作為替代。</li>
-                  <li>每個花禮都是設計師親自手作完成，故無法與所提供的照片完全一致，敬請諒解。</li>
-                  <li>為響應環保，本店不主動提供塑料提袋。建議取貨時自備環保袋或加購提袋。</li>
-                  <li>如需協助列印照片，請提前告知。（4*6寸照片一張30元）</li>
-                  <li>如需統編/收據，請主動告知我們，謝謝。</li>
-              </ul>
-          </div>
-
-          <div class="bank-info">
-              <div class="bank-info-title">🏦 銀行轉帳資訊</div>
-              <p><strong>銀行：</strong>台灣企銀</p>
-              <p><strong>代碼：</strong>050</p>
-              <p><strong>帳號：</strong>00712068817</p>
-              <p><strong>戶名：</strong>繁花予槿商行郭書沅</p>
-          </div>
-
-          <div class="contact-info">
-              <h3>🌸 花禾子 Florescence</h3>
-              <p>📞 0922-317-535 / 0984-259-170</p>
-              <p>📍 台中市南屯區大墩十四街132號1樓</p>
-              <p>📧 florescence.fs@gmail.com</p>
-              <p>🕐 營業時間：12:00 - 24:00</p>
-              <p style="font-size: 0.85em; margin-top: 8px; color: #8b7355;">如需要在非營業時間取貨可提前預約溝通</p>
-          </div>
-      </div>
-
-      <!-- 提交按鈕 -->
-      <div class="section">
-          <button type="submit" class="btn-submit" id="submitBtn">✅ 送出訂單</button>
-      </div>
-  </form>
-</div>
-
-<div class="success-message" id="successMessage">
-  <h2>✅ 訂單送出成功！</h2>
-  <div class="order-info">
-      <p>您的訂單已成功送出</p>
-      <p style="margin-top: 10px;">訂單金額：<strong id="orderAmount"></strong></p>
   </div>
-  <p>我們已收到您的訂單，請盡快完成付款。</p>
-  <p>完成付款後，請來電或私訊告知，謝謝！</p>
-  <p style="margin-top: 20px; font-size: 0.9em; color: #666;">📞 聯絡電話：0922-317-535 / 0984-259-170</p>
-  <p style="font-size: 0.85em; color: #666; margin-top: 10px;">訂單編號將由店家確認後提供</p>
+
+  <div class="section">
+      <div class="section-title">🌸 選擇花材</div>
+      <div class="form-row">
+          <div class="form-group">
+              <label>花材品項</label>
+              <select id="flowerSelect">
+                  <option value="">請選擇花材...</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label>數量（支）</label>
+              <input type="number" id="flowerQty" min="1" value="1">
+          </div>
+      </div>
+      <button class="btn btn-primary" onclick="addFlower()" style="width:100%;">➕ 加入花束</button>
+  </div>
+
+  <div class="section">
+      <div class="section-title">🛒 花束明細</div>
+      <div id="cartContainer">
+          <div class="empty-cart">尚未加入任何花材</div>
+      </div>
+  </div>
+
+  <div class="section">
+      <div class="section-title">💰 費用計算</div>
+      <div class="form-row">
+          <div class="form-group">
+              <label>包裝費</label>
+              <input type="number" id="packagingFee" value="0" min="0" oninput="updateTotal()">
+          </div>
+          <div class="form-group">
+              <label>提袋費</label>
+              <input type="number" id="bagFee" value="0" min="0" oninput="updateTotal()">
+          </div>
+      </div>
+      <div class="form-group" style="margin-bottom:15px;">
+          <label>運費</label>
+          <input type="number" id="shippingFee" value="0" min="0" oninput="updateTotal()">
+      </div>
+      <div class="total-box">
+          <div class="total-row">
+              <span>花材小計：</span>
+              <span id="flowerSubtotal">$0</span>
+          </div>
+          <div class="total-row">
+              <span>包裝 + 提袋：</span>
+              <span id="extraFees">$0</span>
+          </div>
+          <div class="total-row">
+              <span>運費：</span>
+              <span id="shippingDisplay">$0</span>
+          </div>
+          <div class="total-row final">
+              <span>訂單總計：</span>
+              <span id="finalTotal">$0</span>
+          </div>
+      </div>
+  </div>
+
+  <div class="section">
+      <button class="btn btn-success" onclick="submitOrder()" style="width:100%; font-size:1.2em;">
+          ✅ 確認結帳並扣除庫存
+      </button>
+  </div>
 </div>
 
 <script>
 const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
+const SPREADSHEET_ID = '1uVdZk4g4WDKgiOB76avI2Mt0Os8FNhrCSTg9dfZ5Q2w';
+const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
 
-let isSubmitting = false; // 防止重複提交
+let flowerData = [];
+let cart = [];
 
-function toggleRecipient() {
-  const checkbox = document.getElementById('sameAsBuyer');
-  const fields = document.getElementById('recipientFields');
-  const recipientName = document.getElementById('recipientName');
-  const recipientPhone = document.getElementById('recipientPhone');
-  const recipientAddress = document.getElementById('recipientAddress');
+// 完整顏色排序優先級
+const COLOR_ORDER = {
+  // 紅色系
+  '紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
+  // 粉色系
+  '粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
+  // 桃橘系
+  '桃': 11, '橙': 12, '橘': 13,
+  // 白奶系
+  '白': 14, '奶油': 15, '奶茶': 16,
+  // 黃色系
+  '黃': 17, '淺黃': 18, '淺黃粉': 19,
+  // 紫色系
+  '紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
+  // 藍色系
+  '藍': 25, '淺藍': 26, '深藍': 27,
+  // 其他色
+  '綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
+};
+
+// 智能提取花材主名稱和顏色
+function parseFlowerName(name) {
+  let color = '';
+  let mainName = name;
+  let maxLength = 0;
   
-  if (checkbox.checked) {
-      const buyerName = document.getElementById('buyerName').value;
-      const buyerPhone = document.getElementById('buyerPhone').value;
+  // 找出最長匹配的顏色前綴（處理"淺黃粉"這類複合顏色）
+  for (let c in COLOR_ORDER) {
+      if (name.startsWith(c) && c.length > maxLength) {
+          color = c;
+          maxLength = c.length;
+      }
+  }
+  
+  if (color) {
+      mainName = name.substring(color.length);
+  }
+  
+  return { color, mainName, fullName: name };
+}
+
+// 智能排序函數
+function smartSort(list) {
+  return list.sort((a, b) => {
+      const aInfo = parseFlowerName(a.name);
+      const bInfo = parseFlowerName(b.name);
       
-      fields.style.display = 'none';
-      recipientName.required = false;
-      recipientPhone.required = false;
-      recipientAddress.required = false;
-      recipientName.value = buyerName || '同上';
-      recipientPhone.value = buyerPhone || '同上';
-      recipientAddress.value = '同上';
-  } else {
-      fields.style.display = 'block';
-      recipientName.required = true;
-      recipientPhone.required = true;
-      recipientAddress.required = true;
-      if (recipientName.value === '同上' || recipientName.value === document.getElementById('buyerName').value) {
-          recipientName.value = '';
+      if (aInfo.mainName !== bInfo.mainName) {
+          return aInfo.mainName.localeCompare(bInfo.mainName, 'zh-TW');
       }
-      if (recipientPhone.value === '同上' || recipientPhone.value === document.getElementById('buyerPhone').value) {
-          recipientPhone.value = '';
+      
+      const aColorOrder = COLOR_ORDER[aInfo.color] || 999;
+      const bColorOrder = COLOR_ORDER[bInfo.color] || 999;
+      return aColorOrder - bColorOrder;
+  });
+}
+
+async function loadFlowerData() {
+  try {
+      const cloudRes = await fetch(CLOUD_API).then(r => r.json());
+      let currentStock = cloudRes.currentStock || {};
+
+      const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
+      const resLedger = await fetch(urlLedger).then(r => r.json());
+      let latestPrices = {};
+      
+      if (resLedger.values && resLedger.values.length > 1) {
+          for (let i = 1; i < resLedger.values.length; i++) {
+              const row = resLedger.values[i];
+              if(row.length < 9 || row[1] !== 'flower') continue;
+              latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
+          }
       }
-      if (recipientAddress.value === '同上') {
-          recipientAddress.value = '';
-      }
+      
+      flowerData = Object.keys(latestPrices).map(name => ({
+          name: name,
+          price: latestPrices[name],
+          stock: currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0
+      })).filter(item => item.stock > 0);
+      
+      // 智能排序
+      flowerData = smartSort(flowerData);
+      
+      updateFlowerSelect();
+  } catch(e) {
+      alert('載入花材資料失敗：' + e.message);
   }
 }
 
-document.getElementById('orderForm').addEventListener('submit', function(e) {
-  e.preventDefault();
+function updateFlowerSelect() {
+  const select = document.getElementById('flowerSelect');
+  select.innerHTML = '<option value="">請選擇花材...</option>';
   
-  // 防止重複提交
-  if (isSubmitting) {
-      alert('訂單正在送出中，請稍候...');
+  flowerData.forEach((item, idx) => {
+      const stockBadge = item.stock <= 5 ? '⚠️' : '✓';
+      select.innerHTML += `<option value="${idx}">${stockBadge} ${item.name} - $${item.price} (庫存:${item.stock})</option>`;
+  });
+}
+
+function addFlower() {
+  const selectIdx = document.getElementById('flowerSelect').value;
+  const qty = parseInt(document.getElementById('flowerQty').value);
+  
+  if(!selectIdx) { alert('請選擇花材'); return; }
+  if(qty <= 0) { alert('數量必須大於0'); return; }
+  
+  const flower = flowerData[selectIdx];
+  if(qty > flower.stock) {
+      alert(`庫存不足！目前僅剩 ${flower.stock} 支`);
       return;
   }
   
-  const submitBtn = document.getElementById('submitBtn');
-  const loadingOverlay = document.getElementById('loadingOverlay');
+  cart.push({
+      name: flower.name,
+      price: flower.price,
+      qty: qty,
+      subtotal: flower.price * qty
+  });
   
-  // 設定提交狀態
-  isSubmitting = true;
-  submitBtn.disabled = true;
-  submitBtn.textContent = '⏳ 送出中...';
-  loadingOverlay.style.display = 'flex';
-  
-  // 收集表單資料
-  const formData = new FormData(e.target);
-  
-  // 建立隱藏的 iframe 用於提交
-  let iframe = document.getElementById('submitFrame');
-  if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = 'submitFrame';
-      iframe.name = 'submitFrame';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+  updateCart();
+  updateTotal();
+  document.getElementById('flowerQty').value = 1;
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  updateCart();
+  updateTotal();
+}
+
+function updateCart() {
+  const container = document.getElementById('cartContainer');
+  if(cart.length === 0) {
+      container.innerHTML = '<div class="empty-cart">尚未加入任何花材</div>';
+      return;
   }
   
-  // 建立隱藏的表單
-  const hiddenForm = document.createElement('form');
-  hiddenForm.method = 'POST';
-  hiddenForm.action = CLOUD_API;
-  hiddenForm.target = 'submitFrame';
+  container.innerHTML = cart.map((item, idx) => `
+      <div class="cart-item">
+          <div class="cart-item-info">
+              <div class="cart-item-name">🌸 ${item.name}</div>
+              <div class="cart-item-detail">${item.qty} 支 × $${item.price} = $${item.subtotal}</div>
+          </div>
+          <button class="cart-item-remove" onclick="removeFromCart(${idx})">移除</button>
+      </div>
+  `).join('');
+}
+
+function updateTotal() {
+  const flowerTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+  const packaging = parseInt(document.getElementById('packagingFee').value) || 0;
+  const bag = parseInt(document.getElementById('bagFee').value) || 0;
+  const shipping = parseInt(document.getElementById('shippingFee').value) || 0;
+  const finalTotal = flowerTotal + packaging + bag + shipping;
   
-  // 添加所有表單資料
+  document.getElementById('flowerSubtotal').textContent = '$' + flowerTotal;
+  document.getElementById('extraFees').textContent = '$' + (packaging + bag);
+  document.getElementById('shippingDisplay').textContent = '$' + shipping;
+  document.getElementById('finalTotal').textContent = '$' + finalTotal;
+}
+
+async function submitOrder() {
+  if(cart.length === 0) { alert('購物車是空的'); return; }
+  
+  const customerName = document.getElementById('customerName').value.trim();
+  const customerPhone = document.getElementById('customerPhone').value.trim();
+  const pickupDate = document.getElementById('pickupDate').value;
+  const pickupTime = document.getElementById('pickupTime').value;
+  
+  if(!customerName || !customerPhone) {
+      alert('請填寫客戶姓名和電話');
+      return;
+  }
+  
   const orderData = {
-      action: 'submitCustomerOrder',
-      buyerName: formData.get('buyerName'),
-      buyerPhone: formData.get('buyerPhone'),
-      pickupDate: formData.get('pickupDate'),
-      pickupTime: formData.get('pickupTime'),
-      recipientName: formData.get('recipientName'),
-      recipientPhone: formData.get('recipientPhone'),
-      recipientAddress: formData.get('recipientAddress'),
-      product: formData.get('product'),
-      packagingColor: formData.get('packagingColor'),
-      bag: formData.get('bag'),
-      shippingFee: formData.get('shippingFee') || '0',
-      amount: formData.get('amount'),
-      cardMessage: formData.get('cardMessage') || '',
-      note: formData.get('note') || '',
-      timestamp: new Date().toLocaleString('zh-TW', { 
-          timeZone: 'Asia/Taipei',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-      })
+      action: 'checkout',
+      customerName: customerName,
+      customerPhone: customerPhone,
+      pickupDate: pickupDate,
+      pickupTime: pickupTime,
+      items: cart,
+      packagingFee: parseInt(document.getElementById('packagingFee').value) || 0,
+      bagFee: parseInt(document.getElementById('bagFee').value) || 0,
+      shippingFee: parseInt(document.getElementById('shippingFee').value) || 0
   };
   
-  // 將資料轉為 JSON 並添加到表單
-  for (const [key, value] of Object.entries(orderData)) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = value;
-      hiddenForm.appendChild(input);
+  try {
+      const response = await fetch(CLOUD_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+      });
+      
+      const result = await response.json();
+      
+      if(result.success) {
+          alert('✅ 結帳成功！訂單編號：' + result.orderId);
+          cart = [];
+          updateCart();
+          updateTotal();
+          document.getElementById('customerName').value = '';
+          document.getElementById('customerPhone').value = '';
+          document.getElementById('pickupDate').value = '';
+          document.getElementById('pickupTime').value = '';
+          document.getElementById('packagingFee').value = 0;
+          document.getElementById('bagFee').value = 0;
+          document.getElementById('shippingFee').value = 0;
+          loadFlowerData();
+      } else {
+          alert('❌ 結帳失敗：' + result.message);
+      }
+  } catch(e) {
+      alert('系統錯誤：' + e.message);
   }
-  
-  document.body.appendChild(hiddenForm);
-  hiddenForm.submit();
-  
-  // 等待 3 秒後顯示成功訊息
-  setTimeout(() => {
-      loadingOverlay.style.display = 'none';
-      document.getElementById('formContainer').style.display = 'none';
-      document.getElementById('successMessage').style.display = 'block';
-      document.getElementById('orderAmount').textContent = '$' + parseInt(formData.get('amount')).toLocaleString();
-      
-      window.scrollTo(0, 0);
-      document.body.removeChild(hiddenForm);
-      
-      // 5秒後重置提交狀態（允許重新提交，以防失敗）
-      setTimeout(() => {
-          isSubmitting = false;
-      }, 5000);
-  }, 3000);
-});
+}
 
-// 設定最小取貨日期為明天
-window.onload = function() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split('T')[0];
-  document.getElementById('pickupDate').min = minDate;
-  
-  // 設定預設取貨時間為 14:00
-  document.getElementById('pickupTime').value = '14:00';
+window.onload = () => {
+  loadFlowerData();
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('pickupDate').value = today;
 };
 </script>
-
 </body>
 </html>
