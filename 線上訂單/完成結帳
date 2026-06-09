@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✅ 訂單送出成功 - 花禾子</title>
+  <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { 
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; 
+          background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); 
+          padding: 20px; 
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+      }
+      .success-container {
+          max-width: 600px;
+          width: 100%;
+          background: white;
+          border-radius: 24px;
+          box-shadow: 0 15px 50px rgba(46, 125, 50, 0.2);
+          overflow: hidden;
+          animation: slideUp 0.6s ease-out;
+      }
+      @keyframes slideUp {
+          from {
+              opacity: 0;
+              transform: translateY(30px);
+          }
+          to {
+              opacity: 1;
+              transform: translateY(0);
+          }
+      }
+      .success-header {
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+          padding: 50px 30px;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+      }
+      .success-header::before {
+          content: '✓';
+          position: absolute;
+          font-size: 200px;
+          color: rgba(255, 255, 255, 0.1);
+          top: -50px;
+          right: -30px;
+          font-weight: bold;
+      }
+      .success-icon {
+          width: 100px;
+          height: 100px;
+          background: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 20px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+          animation: checkmark 0.8s ease-out;
+          position: relative;
+          z-index: 1;
+      }
+      @keyframes checkmark {
+          0% {
+              transform: scale(0) rotate(-45deg);
+          }
+          50% {
+              transform: scale(1.2) rotate(10deg);
+          }
+          100% {
+              transform: scale(1) rotate(0deg);
+          }
+      }
+      .success-icon::after {
+          content: '✓';
+          font-size: 60px;
+          color: #28a745;
+          font-weight: bold;
+      }
+      .success-header h1 {
+          color: white;
+          font-size: 2.2em;
+          margin-bottom: 10px;
+          position: relative;
+          z-index: 1;
+      }
+      .success-header p {
+          color: rgba(255, 255, 255, 0.95);
+          font-size: 1.1em;
+          position: relative;
+          z-index: 1;
+      }
+      .success-body {
+          padding: 40px 35px;
+      }
+      .order-summary {
+          background: linear-gradient(135deg, #fff9f0 0%, #ffe8d0 100%);
+          border: 3px solid #f4d9a6;
+          border-radius: 16px;
+          padding: 25px;
+          margin-bottom: 30px;
+          box-shadow: 0 4px 15px rgba(244, 217, 166, 0.3);
+      }
+      .order-summary h2 {
+          color: #8b7355;
+          font-size: 1.3em;
+          margin-bottom: 20px;
+          text-align: center;
+          border-bottom: 2px dashed #e8ddd0;
+          padding-bottom: 12px;
+      }
+      .order-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin: 15px 0;
+          padding: 12px 0;
+          border-bottom: 1px solid #f4d9a6;
+      }
+      .order-info:last-child {
+          border-bottom: none;
+      }
+      .order-info label {
+          color: #6b5d4f;
+          font-weight: 600;
+          font-size: 1em;
+      }
+      .order-info span {
+          color: #5d4e37;
+          font-size: 1.1em;
+          font-weight: bold;
+      }
+      .order-amount {
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+          color: white;
+          padding: 20px;
+          border-radius: 12px;
+          text-align: center;
+          margin: 25px 0;
+          box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+      }
+      .order-amount label {
+          display: block;
+          font-size: 1em;
+          margin-bottom: 8px;
+          opacity: 0.95;
+      }
+      .order-amount .amount {
+          font-size: 2.5em;
+          font-weight: bold;
+          letter-spacing: 2px;
+      }
+      .info-box {
+          background: #f8f9fa;
+          border-left: 5px solid #28a745;
+          border-radius: 10px;
+          padding: 20px;
+          margin: 25px 0;
+      }
+      .info-box p {
+          color: #5d4e37;
+          line-height: 1.8;
+          margin: 10px 0;
+          font-size: 1em;
+      }
+      .info-box strong {
+          color: #28a745;
+      }
+      .contact-box {
+          background: linear-gradient(135deg, #e8f4e8 0%, #d4edda 100%);
+          border: 2px solid #a8d5a8;
+          border-radius: 12px;
+          padding: 25px;
+          text-align: center;
+          margin: 25px 0;
+      }
+      .contact-box h3 {
+          color: #2e7d32;
+          margin-bottom: 15px;
+          font-size: 1.3em;
+      }
+      .contact-box p {
+          color: #5d4e37;
+          margin: 10px 0;
+          font-size: 1.05em;
+          font-weight: 500;
+      }
+      .contact-box .phone {
+          font-size: 1.3em;
+          color: #28a745;
+          font-weight: bold;
+          margin: 15px 0;
+      }
+      .bank-info {
+          background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%);
+          border: 2px solid #ffc107;
+          border-left: 5px solid #ff9800;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 25px 0;
+      }
+      .bank-info h3 {
+          color: #ff9800;
+          margin-bottom: 15px;
+          font-size: 1.2em;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .bank-info p {
+          color: #5d4e37;
+          margin: 8px 0;
+          font-size: 1em;
+          padding-left: 10px;
+      }
+      .bank-info strong {
+          color: #ff9800;
+          min-width: 60px;
+          display: inline-block;
+      }
+      .btn-container {
+          display: flex;
+          gap: 15px;
+          margin-top: 30px;
+      }
+      .btn {
+          flex: 1;
+          padding: 16px;
+          border: none;
+          border-radius: 12px;
+          font-size: 1.1em;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s;
+          text-decoration: none;
+          display: inline-block;
+          text-align: center;
+      }
+      .btn-primary {
+          background: linear-gradient(135deg, #8b7355 0%, #6b5d4f 100%);
+          color: white;
+          box-shadow: 0 4px 15px rgba(139, 115, 85, 0.3);
+      }
+      .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(139, 115, 85, 0.4);
+      }
+      .btn-secondary {
+          background: white;
+          color: #8b7355;
+          border: 2px solid #8b7355;
+      }
+      .btn-secondary:hover {
+          background: #f5f0e8;
+          transform: translateY(-2px);
+      }
+      @media(max-width: 600px) {
+          .success-header h1 { font-size: 1.8em; }
+          .success-body { padding: 30px 25px; }
+          .order-amount .amount { font-size: 2em; }
+          .btn-container { flex-direction: column; }
+      }
+      .note-text {
+          font-size: 0.9em;
+          color: #6c757d;
+          text-align: center;
+          margin-top: 20px;
+          font-style: italic;
+      }
+  </style>
+</head>
+<body>
+
+<div class="success-container">
+  <div class="success-header">
+      <div class="success-icon"></div>
+      <h1>訂單送出成功！</h1>
+      <p>我們已收到您的訂單</p>
+  </div>
+  
+  <div class="success-body">
+      <div class="order-summary">
+          <h2>📋 訂單摘要</h2>
+          <div class="order-info">
+              <label>訂購人：</label>
+              <span id="buyerName">-</span>
+          </div>
+          <div class="order-info">
+              <label>取貨日期：</label>
+              <span id="pickupDate">-</span>
+          </div>
+          <div class="order-info">
+              <label>取貨時間：</label>
+              <span id="pickupTime">-</span>
+          </div>
+      </div>
+      
+      <div class="order-amount">
+          <label>訂單金額</label>
+          <div class="amount" id="orderAmount">$0</div>
+      </div>
+      
+      <div class="info-box">
+          <p><strong>✓</strong> 您的訂單已成功送出</p>
+          <p><strong>✓</strong> 我們已收到您的訂單，請盡快完成付款。</p>
+          <p><strong>✓</strong> 完成付款後，請來電或私訊告知，謝謝！</p>
+      </div>
+      
+      <div class="bank-info">
+          <h3>🏦 銀行轉帳資訊</h3>
+          <p><strong>銀行：</strong>台灣企銀</p>
+          <p><strong>代碼：</strong>050</p>
+          <p><strong>帳號：</strong>00712068817</p>
+          <p><strong>戶名：</strong>繁花予槿商行郭書沅</p>
+      </div>
+      
+      <div class="contact-box">
+          <h3>🌸 花禾子 Florescence</h3>
+          <div class="phone">📞 0922-317-535 / 0984-259-170</div>
+          <p>📍 台中市南屯區大墩十四街132號1樓</p>
+          <p>📧 florescence.fs@gmail.com</p>
+          <p style="margin-top: 15px; font-size: 0.95em; color: #6b5d4f;">⏰ 營業時間：12:00 - 24:00</p>
+      </div>
+      
+      <div class="btn-container">
+          <a href="index.html" class="btn btn-primary">返回首頁</a>
+          <a href="tel:0922317535" class="btn btn-secondary">📞 立即來電</a>
+      </div>
+      
+      <p class="note-text">訂單編號將由店家確認後提供</p>
+  </div>
+</div>
+
+<script>
+// 從 sessionStorage 讀取訂單資料
+window.onload = function() {
+  const orderDataStr = sessionStorage.getItem('orderData');
+  
+  if (orderDataStr) {
+      const orderData = JSON.parse(orderDataStr);
+      
+      document.getElementById('buyerName').textContent = orderData.buyerName || '-';
+      document.getElementById('pickupDate').textContent = orderData.pickupDate || '-';
+      document.getElementById('pickupTime').textContent = orderData.pickupTime || '-';
+      document.getElementById('orderAmount').textContent = '$' + (orderData.amount || '0');
+      
+      // 清除 sessionStorage
+      sessionStorage.removeItem('orderData');
+  }
+};
+</script>
+
+</body>
+</html>
