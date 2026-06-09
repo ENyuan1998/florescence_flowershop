@@ -1,161 +1,462 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌸 花禾子 - 銷售結帳系統</title>
-  <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #f5f0e8 0%, #e8ddd0 100%); padding: 15px; color: #5d4e37; }
-      .container { max-width: 800px; margin: 0 auto; background: #faf8f5; border-radius: 16px; box-shadow: 0 8px 24px rgba(139, 115, 85, 0.15); overflow: hidden; }
-      .header { background: linear-gradient(135deg, #c9a882 0%, #b89968 100%); color: white; padding: 20px; text-align: center; }
-      .header h1 { font-size: 1.5em; margin-bottom: 5px; }
-      .section { padding: 20px; border-bottom: 1px solid #e8ddd0; }
-      .section:last-child { border-bottom: none; }
-      .section-title { font-size: 1.2em; font-weight: bold; color: #8b7355; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-      .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-      .form-group { display: flex; flex-direction: column; }
-      .form-group label { font-size: 0.9em; color: #6b5d4f; margin-bottom: 5px; font-weight: 500; }
-      .form-group input, .form-group select { padding: 12px; border: 2px solid #e8ddd0; border-radius: 8px; font-size: 1em; transition: all 0.3s; background: white; }
-      .form-group input:focus, .form-group select:focus { outline: none; border-color: #b89968; box-shadow: 0 0 0 3px rgba(184, 153, 104, 0.1); }
-      .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-      .btn-primary { background: #b89968; color: white; }
-      .btn-primary:hover { background: #a68958; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(184, 153, 104, 0.3); }
-      .btn-success { background: #8b7355; color: white; }
-      .btn-success:hover { background: #7a6449; transform: translateY(-2px); }
-      .btn-secondary { background: #e8ddd0; color: #6b5d4f; }
-      .btn-secondary:hover { background: #d4c4b0; }
-      .cart-item { background: #f5f0e8; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e8ddd0; }
-      .cart-item-info { flex: 1; }
-      .cart-item-name { font-weight: bold; color: #5d4e37; margin-bottom: 4px; }
-      .cart-item-detail { font-size: 0.9em; color: #8b7355; }
-      .cart-item-remove { background: #c97b63; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
-      .cart-item-remove:hover { background: #b56b53; }
-      .total-box { background: linear-gradient(135deg, #f5f0e8 0%, #ebe2d5 100%); padding: 20px; border-radius: 12px; margin-top: 15px; border: 2px solid #e8ddd0; }
-      .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; color: #5d4e37; }
-      .total-row.final { font-size: 1.5em; font-weight: bold; color: #8b7355; padding-top: 10px; border-top: 2px dashed #b89968; }
-      .empty-cart { text-align: center; padding: 40px; color: #b89968; }
-      .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: bold; margin-left: 8px; }
-      .status-success { background: #d4e8d4; color: #2e7d32; }
-      .status-warning { background: #ffe8d0; color: #d97706; }
-      .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
-      .loading-content { background: white; padding: 40px; border-radius: 16px; text-align: center; }
-      .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #b89968; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 花禾子 - 銷售結帳系統</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; 
+        background: linear-gradient(135deg, #f5f0e8 0%, #e8ddd0 100%); 
+        padding: 20px; 
+        color: #5d4e37;
+        min-height: 100vh;
+    }
+    .container { 
+        max-width: 900px; 
+        margin: 0 auto; 
+        background: #faf8f5; 
+        border-radius: 20px; 
+        box-shadow: 0 10px 40px rgba(139, 115, 85, 0.2); 
+        overflow: hidden;
+        animation: slideIn 0.5s ease-out;
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .header { 
+        background: linear-gradient(135deg, #c9a882 0%, #b89968 100%); 
+        color: white; 
+        padding: 30px 25px; 
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .header::before {
+        content: '🌸';
+        position: absolute;
+        font-size: 150px;
+        opacity: 0.1;
+        top: -30px;
+        right: -30px;
+        transform: rotate(-15deg);
+    }
+    .header h1 { 
+        font-size: 2em; 
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 1;
+    }
+    .header .subtitle {
+        font-size: 1em;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+    .section { 
+        padding: 25px 30px; 
+        border-bottom: 2px solid #f5f0e8;
+        transition: background 0.3s;
+    }
+    .section:hover {
+        background: #f9f6f2;
+    }
+    .section:last-child { border-bottom: none; }
+    .section-title { 
+        font-size: 1.3em; 
+        font-weight: bold; 
+        color: #8b7355; 
+        margin-bottom: 20px; 
+        display: flex; 
+        align-items: center; 
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 3px solid #e8ddd0;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: #b89968;
+    }
+    .form-row { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 18px; 
+        margin-bottom: 18px; 
+    }
+    @media(max-width: 600px) {
+        .form-row { grid-template-columns: 1fr; }
+    }
+    .form-group { 
+        display: flex; 
+        flex-direction: column; 
+    }
+    .form-group label { 
+        font-size: 0.95em; 
+        color: #6b5d4f; 
+        margin-bottom: 8px; 
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .form-group input, .form-group select { 
+        padding: 14px; 
+        border: 2px solid #e8ddd0; 
+        border-radius: 10px; 
+        font-size: 1em; 
+        transition: all 0.3s; 
+        background: white;
+        font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus { 
+        outline: none; 
+        border-color: #b89968; 
+        box-shadow: 0 0 0 4px rgba(184, 153, 104, 0.15);
+        transform: translateY(-2px);
+    }
+    .form-group select {
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b7355' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 35px;
+        appearance: none;
+    }
+    .btn { 
+        padding: 14px 28px; 
+        border: none; 
+        border-radius: 10px; 
+        font-size: 1em; 
+        font-weight: bold; 
+        cursor: pointer; 
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn-primary { 
+        background: linear-gradient(135deg, #b89968 0%, #a68958 100%); 
+        color: white; 
+    }
+    .btn-primary:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 6px 20px rgba(184, 153, 104, 0.4); 
+    }
+    .btn-primary:active {
+        transform: translateY(-1px);
+    }
+    .btn-success { 
+        background: linear-gradient(135deg, #8b7355 0%, #7a6449 100%); 
+        color: white; 
+    }
+    .btn-success:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 6px 20px rgba(139, 115, 85, 0.4); 
+    }
+    .cart-item { 
+        background: linear-gradient(135deg, #fff 0%, #f9f6f2 100%); 
+        padding: 15px; 
+        border-radius: 12px; 
+        margin-bottom: 12px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        border: 2px solid #e8ddd0;
+        transition: all 0.3s;
+        animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .cart-item:hover {
+        border-color: #b89968;
+        box-shadow: 0 4px 12px rgba(184, 153, 104, 0.15);
+        transform: translateX(5px);
+    }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { 
+        font-weight: bold; 
+        color: #5d4e37; 
+        margin-bottom: 6px;
+        font-size: 1.05em;
+    }
+    .cart-item-detail { 
+        font-size: 0.9em; 
+        color: #8b7355; 
+    }
+    .cart-item-remove { 
+        background: linear-gradient(135deg, #c97b63 0%, #b56b53 100%); 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-size: 0.9em;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .cart-item-remove:hover { 
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(201, 123, 99, 0.3);
+    }
+    .total-box { 
+        background: linear-gradient(135deg, #fff9f0 0%, #ffe8d0 100%); 
+        padding: 25px; 
+        border-radius: 15px; 
+        margin-top: 20px; 
+        border: 3px solid #f4d9a6;
+        box-shadow: 0 4px 15px rgba(244, 217, 166, 0.3);
+    }
+    .total-row { 
+        display: flex; 
+        justify-content: space-between; 
+        margin-bottom: 12px; 
+        font-size: 1.1em; 
+        color: #5d4e37;
+        padding: 8px 0;
+    }
+    .total-row.final { 
+        font-size: 1.8em; 
+        font-weight: bold; 
+        color: #8b7355; 
+        padding-top: 15px; 
+        margin-top: 10px;
+        border-top: 3px dashed #b89968; 
+    }
+    .empty-cart { 
+        text-align: center; 
+        padding: 50px 20px; 
+        color: #b89968;
+        font-size: 1.1em;
+        background: #f9f6f2;
+        border-radius: 12px;
+        border: 2px dashed #e8ddd0;
+    }
+    .empty-cart::before {
+        content: '🛒';
+        display: block;
+        font-size: 3em;
+        margin-bottom: 10px;
+    }
+    .loading-overlay { 
+        display: none; 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: rgba(0,0,0,0.75); 
+        z-index: 9999; 
+        justify-content: center; 
+        align-items: center;
+        backdrop-filter: blur(5px);
+    }
+    .loading-content { 
+        background: white; 
+        padding: 50px 40px; 
+        border-radius: 20px; 
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease-out;
+    }
+    .loading-content h3 {
+        color: #5d4e37;
+        margin-bottom: 10px;
+        font-size: 1.4em;
+    }
+    .loading-content p {
+        color: #8b7355;
+    }
+    .spinner { 
+        border: 5px solid #f3f3f3; 
+        border-top: 5px solid #b89968; 
+        border-radius: 50%; 
+        width: 60px; 
+        height: 60px; 
+        animation: spin 1s linear infinite; 
+        margin: 0 auto 25px; 
+    }
+    @keyframes spin { 
+        0% { transform: rotate(0deg); } 
+        100% { transform: rotate(360deg); } 
+    }
+    .stock-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.75em;
+        font-weight: bold;
+        margin-left: 8px;
+    }
+    .stock-low {
+        background: #ffe8d0;
+        color: #d97706;
+    }
+    .stock-ok {
+        background: #d4e8d4;
+        color: #2e7d32;
+    }
+    .input-with-icon {
+        position: relative;
+    }
+    .input-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #b89968;
+        font-size: 1.2em;
+    }
+    .fee-input-group {
+        background: #f5f0e8;
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid #e8ddd0;
+    }
+    .fee-input-group .form-group {
+        margin-bottom: 15px;
+    }
+    .fee-input-group .form-group:last-child {
+        margin-bottom: 0;
+    }
+</style>
 </head>
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-content">
-        <div class="spinner"></div>
-        <h3>正在處理訂單...</h3>
-        <p>請稍候</p>
-    </div>
+  <div class="loading-content">
+      <div class="spinner"></div>
+      <h3>🌸 正在處理訂單...</h3>
+      <p>請稍候，系統正在更新庫存</p>
+  </div>
 </div>
 
 <div class="container">
-  <div class="header">
-      <h1>🌸 花禾子 - 銷售結帳系統</h1>
-      <div style="font-size:0.9em; margin-top:5px;">即時庫存連動</div>
-  </div>
+<div class="header">
+    <h1>🌸 花禾子 Florescence</h1>
+    <div class="subtitle">銷售結帳系統 · 即時庫存連動</div>
+</div>
 
-  <div class="section">
-      <div class="section-title">📝 客戶資訊</div>
-      <div class="form-row">
-          <div class="form-group">
-              <label>客戶姓名</label>
-              <input type="text" id="customerName" placeholder="請輸入客戶姓名">
-          </div>
-          <div class="form-group">
-              <label>聯絡電話</label>
-              <input type="tel" id="customerPhone" placeholder="請輸入聯絡電話">
-          </div>
-      </div>
-      <div class="form-row">
-          <div class="form-group">
-              <label>取貨日期</label>
-              <input type="date" id="pickupDate">
-          </div>
-          <div class="form-group">
-              <label>取貨時間</label>
-              <input type="time" id="pickupTime" value="14:00">
-          </div>
-      </div>
-  </div>
+<div class="section">
+    <div class="section-title">👤 客戶資訊</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>👤 客戶姓名</label>
+            <input type="text" id="customerName" placeholder="請輸入客戶姓名">
+        </div>
+        <div class="form-group">
+            <label>📞 聯絡電話</label>
+            <input type="tel" id="customerPhone" placeholder="請輸入聯絡電話">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>📅 取貨日期</label>
+            <input type="date" id="pickupDate">
+        </div>
+        <div class="form-group">
+            <label>⏰ 取貨時間</label>
+            <input type="time" id="pickupTime" value="14:00">
+        </div>
+    </div>
+</div>
 
-  <div class="section">
-      <div class="section-title">🌸 選擇花材</div>
-      <div class="form-row">
-          <div class="form-group">
-              <label>花材品項</label>
-              <select id="flowerSelect">
-                  <option value="">請選擇花材...</option>
-              </select>
-          </div>
-          <div class="form-group">
-              <label>數量（支）</label>
-              <input type="number" id="flowerQty" min="1" value="1">
-          </div>
-      </div>
-      <button class="btn btn-primary" onclick="addFlower()" style="width:100%;">➕ 加入花束</button>
-  </div>
+<div class="section">
+    <div class="section-title">🌸 選擇花材</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>花材品項</label>
+            <select id="flowerSelect">
+                <option value="">請選擇花材...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>數量（支）</label>
+            <div class="input-with-icon">
+                <input type="number" id="flowerQty" min="1" value="1">
+                <span class="input-icon">支</span>
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-primary" onclick="addFlower()" style="width:100%;">
+        ➕ 加入花束
+    </button>
+</div>
 
-  <div class="section">
-      <div class="section-title">🛒 花束明細</div>
-      <div id="cartContainer">
-          <div class="empty-cart">尚未加入任何花材</div>
-      </div>
-  </div>
+<div class="section">
+    <div class="section-title">🛒 花束明細</div>
+    <div id="cartContainer">
+        <div class="empty-cart">尚未加入任何花材</div>
+    </div>
+</div>
 
-  <div class="section">
-      <div class="section-title">💰 費用計算</div>
-      <div class="form-row">
-          <div class="form-group">
-              <label>包裝費</label>
-              <input type="number" id="packagingFee" value="0" min="0" oninput="updateTotal()">
-          </div>
-          <div class="form-group">
-              <label>提袋費</label>
-              <input type="number" id="bagFee" value="0" min="0" oninput="updateTotal()">
-          </div>
-      </div>
-      <div class="form-group" style="margin-bottom:15px;">
-          <label>運費</label>
-          <input type="number" id="shippingFee" value="0" min="0" oninput="updateTotal()">
-      </div>
-      <div class="total-box">
-          <div class="total-row">
-              <span>花材小計：</span>
-              <span id="flowerSubtotal">$0</span>
-          </div>
-          <div class="total-row">
-              <span>包裝 + 提袋：</span>
-              <span id="extraFees">$0</span>
-          </div>
-          <div class="total-row">
-              <span>運費：</span>
-              <span id="shippingDisplay">$0</span>
-          </div>
-          <div class="total-row final">
-              <span>訂單總計：</span>
-              <span id="finalTotal">$0</span>
-          </div>
-      </div>
-  </div>
+<div class="section">
+    <div class="section-title">💰 費用計算</div>
+    <div class="fee-input-group">
+        <div class="form-row">
+            <div class="form-group">
+                <label>🎁 包裝費</label>
+                <div class="input-with-icon">
+                    <input type="number" id="packagingFee" value="300" min="0" oninput="updateTotal()">
+                    <span class="input-icon">元</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>🛍️ 提袋費</label>
+                <div class="input-with-icon">
+                    <input type="number" id="bagFee" value="0" min="0" oninput="updateTotal()">
+                    <span class="input-icon">元</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>🚚 運費</label>
+            <div class="input-with-icon">
+                <input type="number" id="shippingFee" value="0" min="0" oninput="updateTotal()">
+                <span class="input-icon">元</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="total-box">
+        <div class="total-row">
+            <span>🌸 花材小計：</span>
+            <span id="flowerSubtotal">$0</span>
+        </div>
+        <div class="total-row">
+            <span>🎁 包裝 + 提袋：</span>
+            <span id="extraFees">$300</span>
+        </div>
+        <div class="total-row">
+            <span>🚚 運費：</span>
+            <span id="shippingDisplay">$0</span>
+        </div>
+        <div class="total-row final">
+            <span>💰 訂單總計：</span>
+            <span id="finalTotal">$300</span>
+        </div>
+    </div>
+</div>
 
-  <div class="section">
-      <button class="btn btn-success" onclick="submitOrder()" style="width:100%; font-size:1.2em;">
-          ✅ 確認結帳並扣除庫存
-      </button>
-  </div>
+<div class="section">
+    <button class="btn btn-success" onclick="submitOrder()" style="width:100%; font-size:1.2em; padding:18px;">
+        ✅ 確認結帳並扣除庫存
+    </button>
+</div>
 </div>
 
 <script>
 // 全域 Promise 錯誤處理器
 window.addEventListener('unhandledrejection', function(event) {
-  console.warn('捕捉到未處理的 Promise 錯誤：', event.reason);
-  event.preventDefault();
+console.warn('捕捉到未處理的 Promise 錯誤：', event.reason);
+event.preventDefault();
 });
 
 const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
@@ -166,242 +467,246 @@ let flowerData = [];
 let cart = [];
 
 const COLOR_ORDER = {
-  '紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
-  '粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
-  '桃': 11, '橙': 12, '橘': 13,
-  '白': 14, '奶油': 15, '奶茶': 16,
-  '黃': 17, '淺黃': 18, '淺黃粉': 19,
-  '紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
-  '藍': 25, '淺藍': 26, '深藍': 27,
-  '綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
+'紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
+'粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
+'桃': 11, '橙': 12, '橘': 13,
+'白': 14, '奶油': 15, '奶茶': 16,
+'黃': 17, '淺黃': 18, '淺黃粉': 19,
+'紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
+'藍': 25, '淺藍': 26, '深藍': 27,
+'綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
 };
 
 function parseFlowerName(name) {
-  let color = '';
-  let mainName = name;
-  let maxLength = 0;
-  
-  for (let c in COLOR_ORDER) {
-      if (name.startsWith(c) && c.length > maxLength) {
-          color = c;
-          maxLength = c.length;
-      }
-  }
-  
-  if (color) {
-      mainName = name.substring(color.length);
-  }
-  
-  return { color, mainName, fullName: name };
+let color = '';
+let mainName = name;
+let maxLength = 0;
+
+for (let c in COLOR_ORDER) {
+    if (name.startsWith(c) && c.length > maxLength) {
+        color = c;
+        maxLength = c.length;
+    }
+}
+
+if (color) {
+    mainName = name.substring(color.length);
+}
+
+return { color, mainName, fullName: name };
 }
 
 function smartSort(list) {
-  return list.sort((a, b) => {
-      const aInfo = parseFlowerName(a.name);
-      const bInfo = parseFlowerName(b.name);
-      
-      if (aInfo.mainName !== bInfo.mainName) {
-          return aInfo.mainName.localeCompare(bInfo.mainName, 'zh-TW');
-      }
-      
-      const aColorOrder = COLOR_ORDER[aInfo.color] || 999;
-      const bColorOrder = COLOR_ORDER[bInfo.color] || 999;
-      return aColorOrder - bColorOrder;
-  });
+return list.sort((a, b) => {
+    const aInfo = parseFlowerName(a.name);
+    const bInfo = parseFlowerName(b.name);
+    
+    if (aInfo.mainName !== bInfo.mainName) {
+        return aInfo.mainName.localeCompare(bInfo.mainName, 'zh-TW');
+    }
+    
+    const aColorOrder = COLOR_ORDER[aInfo.color] || 999;
+    const bColorOrder = COLOR_ORDER[bInfo.color] || 999;
+    return aColorOrder - bColorOrder;
+});
 }
 
 async function loadFlowerData() {
-  try {
-      const cloudRes = await fetch(CLOUD_API).then(r => r.json()).catch(err => {
-          console.log('fetch 雲端 API 失敗：', err);
-          return { currentStock: {} };
-      });
-      
-      let currentStock = cloudRes.currentStock || {};
+try {
+    const cloudRes = await fetch(CLOUD_API).then(r => r.json()).catch(err => {
+        console.log('fetch 雲端 API 失敗：', err);
+        return { currentStock: {} };
+    });
+    
+    let currentStock = cloudRes.currentStock || {};
 
-      const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
-      const resLedger = await fetch(urlLedger).then(r => r.json()).catch(err => {
-          console.log('fetch 進貨紀錄失敗：', err);
-          return { values: [] };
-      });
-      
-      let latestPrices = {};
-      
-      if (resLedger.values && resLedger.values.length > 1) {
-          for (let i = 1; i < resLedger.values.length; i++) {
-              const row = resLedger.values[i];
-              if(row.length < 9 || row[1] !== 'flower') continue;
-              latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
-          }
-      }
-      
-      flowerData = Object.keys(latestPrices).map(name => ({
-          name: name,
-          price: latestPrices[name],
-          stock: currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0
-      })).filter(item => item.stock > 0);
-      
-      flowerData = smartSort(flowerData);
-      updateFlowerSelect();
-      
-  } catch(e) {
-      console.error('載入花材資料失敗：', e);
-      alert('載入花材資料失敗，請重新整理頁面');
-  }
+    const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
+    const resLedger = await fetch(urlLedger).then(r => r.json()).catch(err => {
+        console.log('fetch 進貨紀錄失敗：', err);
+        return { values: [] };
+    });
+    
+    let latestPrices = {};
+    
+    if (resLedger.values && resLedger.values.length > 1) {
+        for (let i = 1; i < resLedger.values.length; i++) {
+            const row = resLedger.values[i];
+            if(row.length < 9 || row[1] !== 'flower') continue;
+            latestPrices[row[3].trim()] = Math.round(parseFloat(row[7] || 0) * 3);
+        }
+    }
+    
+    flowerData = Object.keys(latestPrices).map(name => ({
+        name: name,
+        price: latestPrices[name],
+        stock: currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0
+    })).filter(item => item.stock > 0);
+    
+    flowerData = smartSort(flowerData);
+    updateFlowerSelect();
+    
+} catch(e) {
+    console.error('載入花材資料失敗：', e);
+    alert('載入花材資料失敗，請重新整理頁面');
+}
 }
 
 function updateFlowerSelect() {
-  const select = document.getElementById('flowerSelect');
-  select.innerHTML = '<option value="">請選擇花材...</option>';
-  
-  flowerData.forEach((item, idx) => {
-      const stockBadge = item.stock <= 5 ? '⚠️' : '✓';
-      select.innerHTML += `<option value="${idx}">${stockBadge} ${item.name} - $${item.price} (庫存:${item.stock})</option>`;
-  });
+const select = document.getElementById('flowerSelect');
+select.innerHTML = '<option value="">請選擇花材...</option>';
+
+flowerData.forEach((item, idx) => {
+    const stockBadge = item.stock <= 5 ? '⚠️' : '✓';
+    select.innerHTML += `<option value="${idx}">${stockBadge} ${item.name} - $${item.price} (庫存:${item.stock}支)</option>`;
+});
 }
 
 function addFlower() {
-  const selectIdx = document.getElementById('flowerSelect').value;
-  const qty = parseInt(document.getElementById('flowerQty').value);
-  
-  if(!selectIdx) { alert('請選擇花材'); return; }
-  if(qty <= 0) { alert('數量必須大於0'); return; }
-  
-  const flower = flowerData[selectIdx];
-  if(qty > flower.stock) {
-      alert(`庫存不足！目前僅剩 ${flower.stock} 支`);
-      return;
-  }
-  
-  cart.push({
-      name: flower.name,
-      price: flower.price,
-      qty: qty,
-      subtotal: flower.price * qty
-  });
-  
-  updateCart();
-  updateTotal();
-  document.getElementById('flowerQty').value = 1;
+const selectIdx = document.getElementById('flowerSelect').value;
+const qty = parseInt(document.getElementById('flowerQty').value);
+
+if(!selectIdx) { alert('請選擇花材'); return; }
+if(qty <= 0) { alert('數量必須大於0'); return; }
+
+const flower = flowerData[selectIdx];
+if(qty > flower.stock) {
+    alert(`庫存不足！目前僅剩 ${flower.stock} 支`);
+    return;
+}
+
+cart.push({
+    name: flower.name,
+    price: flower.price,
+    qty: qty,
+    subtotal: flower.price * qty
+});
+
+updateCart();
+updateTotal();
+document.getElementById('flowerQty').value = 1;
+document.getElementById('flowerSelect').value = '';
 }
 
 function removeFromCart(idx) {
-  cart.splice(idx, 1);
-  updateCart();
-  updateTotal();
+cart.splice(idx, 1);
+updateCart();
+updateTotal();
 }
 
 function updateCart() {
-  const container = document.getElementById('cartContainer');
-  if(cart.length === 0) {
-      container.innerHTML = '<div class="empty-cart">尚未加入任何花材</div>';
-      return;
-  }
-  
-  container.innerHTML = cart.map((item, idx) => `
-      <div class="cart-item">
-          <div class="cart-item-info">
-              <div class="cart-item-name">🌸 ${item.name}</div>
-              <div class="cart-item-detail">${item.qty} 支 × $${item.price} = $${item.subtotal}</div>
-          </div>
-          <button class="cart-item-remove" onclick="removeFromCart(${idx})">移除</button>
-      </div>
-  `).join('');
+const container = document.getElementById('cartContainer');
+if(cart.length === 0) {
+    container.innerHTML = '<div class="empty-cart">尚未加入任何花材</div>';
+    return;
+}
+
+container.innerHTML = cart.map((item, idx) => `
+    <div class="cart-item">
+        <div class="cart-item-info">
+            <div class="cart-item-name">🌸 ${item.name}</div>
+            <div class="cart-item-detail">${item.qty} 支 × $${item.price} = $${item.subtotal.toLocaleString()}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕ 移除</button>
+    </div>
+`).join('');
 }
 
 function updateTotal() {
-  const flowerTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
-  const packaging = parseInt(document.getElementById('packagingFee').value) || 0;
-  const bag = parseInt(document.getElementById('bagFee').value) || 0;
-  const shipping = parseInt(document.getElementById('shippingFee').value) || 0;
-  const finalTotal = flowerTotal + packaging + bag + shipping;
-  
-  document.getElementById('flowerSubtotal').textContent = '$' + flowerTotal;
-  document.getElementById('extraFees').textContent = '$' + (packaging + bag);
-  document.getElementById('shippingDisplay').textContent = '$' + shipping;
-  document.getElementById('finalTotal').textContent = '$' + finalTotal;
+const flowerTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+const packaging = parseInt(document.getElementById('packagingFee').value) || 0;
+const bag = parseInt(document.getElementById('bagFee').value) || 0;
+const shipping = parseInt(document.getElementById('shippingFee').value) || 0;
+const finalTotal = flowerTotal + packaging + bag + shipping;
+
+document.getElementById('flowerSubtotal').textContent = '$' + flowerTotal.toLocaleString();
+document.getElementById('extraFees').textContent = '$' + (packaging + bag).toLocaleString();
+document.getElementById('shippingDisplay').textContent = '$' + shipping.toLocaleString();
+document.getElementById('finalTotal').textContent = '$' + finalTotal.toLocaleString();
 }
 
 async function submitOrder() {
-  if(cart.length === 0) { alert('購物車是空的'); return; }
-  
-  const customerName = document.getElementById('customerName').value.trim();
-  const customerPhone = document.getElementById('customerPhone').value.trim();
-  const pickupDate = document.getElementById('pickupDate').value;
-  const pickupTime = document.getElementById('pickupTime').value;
-  
-  if(!customerName || !customerPhone) {
-      alert('請填寫客戶姓名和電話');
-      return;
-  }
-  
-  if(!confirm('確定要送出訂單並扣除庫存嗎？')) return;
-  
-  document.getElementById('loadingOverlay').style.display = 'flex';
-  
-  const flowerTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
-  const packaging = parseInt(document.getElementById('packagingFee').value) || 0;
-  const bag = parseInt(document.getElementById('bagFee').value) || 0;
-  const shipping = parseInt(document.getElementById('shippingFee').value) || 0;
-  const finalTotal = flowerTotal + packaging + bag + shipping;
-  
-  const orderData = {
-      action: 'submitOrder',
-      order: {
-          id: 'ORDER_' + Date.now(),
-          time: new Date().toLocaleString('zh-TW'),
-          customer: customerName,
-          phone: customerPhone,
-          pickupDate: pickupDate,
-          pickupTime: pickupTime,
-          items: cart,
-          flowerTotal: flowerTotal,
-          packagePrice: packaging,
-          bagPrice: bag,
-          shippingFee: shipping,
-          needPackage: packaging > 0,
-          needBag: bag > 0
-      }
-  };
-  
-  try {
-      const response = await fetch(CLOUD_API, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData)
-      });
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      document.getElementById('loadingOverlay').style.display = 'none';
-      alert(`✅ 結帳成功！\n\n訂單編號：${orderData.order.id}\n訂單總額：$${finalTotal}\n\n庫存已自動扣除`);
-      
-      cart = [];
-      updateCart();
-      updateTotal();
-      document.getElementById('customerName').value = '';
-      document.getElementById('customerPhone').value = '';
-      document.getElementById('pickupDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('pickupTime').value = '14:00';
-      document.getElementById('packagingFee').value = 0;
-      document.getElementById('bagFee').value = 0;
-      document.getElementById('shippingFee').value = 0;
-      
-      loadFlowerData();
-      
-  } catch(e) {
-      document.getElementById('loadingOverlay').style.display = 'none';
-      console.error('送出訂單失敗：', e);
-      alert('❌ 系統錯誤：' + e.message + '\n\n請重試或聯繫技術支援');
-  }
+if(cart.length === 0) { alert('購物車是空的，請先加入花材'); return; }
+
+const customerName = document.getElementById('customerName').value.trim();
+const customerPhone = document.getElementById('customerPhone').value.trim();
+const pickupDate = document.getElementById('pickupDate').value;
+const pickupTime = document.getElementById('pickupTime').value;
+
+if(!customerName || !customerPhone) {
+    alert('請填寫客戶姓名和電話');
+    return;
+}
+
+const flowerTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+const packaging = parseInt(document.getElementById('packagingFee').value) || 0;
+const bag = parseInt(document.getElementById('bagFee').value) || 0;
+const shipping = parseInt(document.getElementById('shippingFee').value) || 0;
+const finalTotal = flowerTotal + packaging + bag + shipping;
+
+if(!confirm(`🌸 確認訂單資訊\n\n客戶：${customerName}\n電話：${customerPhone}\n取貨：${pickupDate} ${pickupTime}\n\n花材小計：$${flowerTotal.toLocaleString()}\n包裝+提袋：$${(packaging + bag).toLocaleString()}\n運費：$${shipping.toLocaleString()}\n訂單總計：$${finalTotal.toLocaleString()}\n\n確定要送出訂單並扣除庫存嗎？`)) return;
+
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+const orderData = {
+    action: 'submitOrder',
+    order: {
+        id: 'ORDER_' + Date.now(),
+        time: new Date().toLocaleString('zh-TW'),
+        customer: customerName,
+        phone: customerPhone,
+        pickupDate: pickupDate,
+        pickupTime: pickupTime,
+        items: cart,
+        flowerTotal: flowerTotal,
+        packagePrice: packaging,
+        bagPrice: bag,
+        shippingFee: shipping,
+        needPackage: packaging > 0,
+        needBag: bag > 0
+    }
+};
+
+try {
+    const response = await fetch(CLOUD_API, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    document.getElementById('loadingOverlay').style.display = 'none';
+    alert(`✅ 結帳成功！\n\n訂單編號：${orderData.order.id}\n客戶姓名：${customerName}\n訂單總額：$${finalTotal.toLocaleString()}\n\n庫存已自動扣除，請至門市管理系統查看待處理訂單`);
+    
+    // 清空表單
+    cart = [];
+    updateCart();
+    updateTotal();
+    document.getElementById('customerName').value = '';
+    document.getElementById('customerPhone').value = '';
+    document.getElementById('pickupDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('pickupTime').value = '14:00';
+    document.getElementById('packagingFee').value = 300;
+    document.getElementById('bagFee').value = 0;
+    document.getElementById('shippingFee').value = 0;
+    
+    // 重新載入花材資料
+    loadFlowerData();
+    
+} catch(e) {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    console.error('送出訂單失敗：', e);
+    alert('❌ 系統錯誤：' + e.message + '\n\n請重試或聯繫技術支援');
+}
 }
 
 window.onload = () => {
-  loadFlowerData();
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('pickupDate').value = today;
-  document.getElementById('pickupTime').value = '14:00';
+loadFlowerData();
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('pickupDate').value = today;
+document.getElementById('pickupTime').value = '14:00';
+updateTotal(); // 初始化顯示包裝費 300 元
 };
 </script>
 </body>
