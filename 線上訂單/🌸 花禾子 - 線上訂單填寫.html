@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌸 花禾子 - 線上訂單填寫</title>
+  <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { 
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; 
+          background: linear-gradient(135deg, #f5f0e8 0%, #e8ddd0 100%); 
+          padding: 15px; 
+          color: #5d4e37; 
+          min-height: 100vh;
+      }
+      .container { 
+          max-width: 700px; 
+          margin: 0 auto; 
+          background: #faf8f5; 
+          border-radius: 20px; 
+          box-shadow: 0 10px 40px rgba(139, 115, 85, 0.2); 
+          overflow: hidden; 
+          margin-bottom: 30px;
+      }
+      .header { 
+          background: linear-gradient(135deg, #c9a882 0%, #b89968 100%); 
+          color: white; 
+          padding: 40px 25px; 
+          text-align: center; 
+          position: relative;
+          overflow: hidden;
+      }
+      .header::before {
+          content: '🌸';
+          position: absolute;
+          font-size: 120px;
+          opacity: 0.1;
+          top: -20px;
+          right: -20px;
+          transform: rotate(-15deg);
+      }
+      .header h1 { 
+          font-size: 2em; 
+          margin-bottom: 10px; 
+          position: relative;
+          z-index: 1;
+      }
+      .header p { 
+          font-size: 1em; 
+          opacity: 0.95; 
+          position: relative;
+          z-index: 1;
+      }
+      .section { 
+          padding: 30px 25px; 
+          border-bottom: 2px solid #e8ddd0; 
+          transition: background 0.3s;
+      }
+      .section:hover {
+          background: #f9f6f2;
+      }
+      .section:last-child { border-bottom: none; }
+      .section-title { 
+          font-size: 1.4em; 
+          font-weight: bold; 
+          color: #8b7355; 
+          margin-bottom: 20px; 
+          display: flex; 
+          align-items: center; 
+          gap: 10px; 
+          padding-bottom: 12px;
+          border-bottom: 3px solid #e8ddd0;
+          position: relative;
+      }
+      .section-title::after {
+          content: '';
+          position: absolute;
+          bottom: -3px;
+          left: 0;
+          width: 60px;
+          height: 3px;
+          background: #b89968;
+      }
+      .form-group { margin-bottom: 20px; }
+      .form-group label { 
+          display: block; 
+          font-size: 1em; 
+          color: #6b5d4f; 
+          margin-bottom: 8px; 
+          font-weight: 600; 
+      }
+      .form-group input, .form-group select, .form-group textarea { 
+          width: 100%; 
+          padding: 14px; 
+          border: 2px solid #e8ddd0; 
+          border-radius: 10px; 
+          font-size: 1em; 
+          transition: all 0.3s; 
+          background: white;
+          font-family: inherit;
+      }
+      .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+          outline: none; 
+          border-color: #b89968; 
+          box-shadow: 0 0 0 4px rgba(184, 153, 104, 0.15); 
+          transform: translateY(-2px);
+      }
+      .form-group textarea { 
+          resize: vertical; 
+          min-height: 100px; 
+          line-height: 1.6;
+      }
+      .form-row { 
+          display: grid; 
+          grid-template-columns: 1fr 1fr; 
+          gap: 18px; 
+      }
+      @media(max-width: 600px) {
+          .form-row { grid-template-columns: 1fr; }
+          .header h1 { font-size: 1.6em; }
+          .section { padding: 25px 20px; }
+      }
+      .checkbox-group { 
+          display: flex; 
+          align-items: center; 
+          gap: 12px; 
+          padding: 15px; 
+          background: linear-gradient(135deg, #f5f0e8 0%, #ebe2d5 100%); 
+          border-radius: 10px; 
+          border: 2px solid #e8ddd0;
+          cursor: pointer;
+          transition: all 0.3s;
+      }
+      .checkbox-group:hover {
+          border-color: #b89968;
+          box-shadow: 0 4px 12px rgba(139, 115, 85, 0.1);
+      }
+      .checkbox-group input[type="checkbox"] { 
+          width: 22px; 
+          height: 22px; 
+          cursor: pointer; 
+          accent-color: #b89968;
+      }
+      .checkbox-group label { 
+          margin: 0; 
+          cursor: pointer; 
+          font-weight: 600;
+          color: #6b5d4f;
+      }
+      .radio-group { 
+          display: flex; 
+          gap: 15px; 
+          flex-wrap: wrap; 
+      }
+      .radio-option { 
+          display: flex; 
+          align-items: center; 
+          gap: 10px; 
+          padding: 12px 18px; 
+          background: white; 
+          border-radius: 10px; 
+          border: 2px solid #e8ddd0; 
+          cursor: pointer; 
+          transition: all 0.3s;
+          flex: 1;
+          min-width: 140px;
+      }
+      .radio-option:hover { 
+          border-color: #b89968; 
+          background: #f5f0e8;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(139, 115, 85, 0.15);
+      }
+      .radio-option input[type="radio"]:checked + span {
+          color: #b89968;
+          font-weight: bold;
+      }
+      .radio-option input[type="radio"] { 
+          width: 20px; 
+          height: 20px; 
+          cursor: pointer; 
+          accent-color: #b89968;
+      }
+      .amount-highlight {
+          background: linear-gradient(135deg, #fff9f0 0%, #ffe8d0 100%);
+          border: 3px solid #f4d9a6;
+          padding: 25px;
+          border-radius: 15px;
+          margin: 20px 0;
+          box-shadow: 0 4px 15px rgba(244, 217, 166, 0.3);
+      }
+      .amount-highlight label {
+          font-size: 1.2em;
+          color: #8b7355;
+          font-weight: bold;
+          display: block;
+          margin-bottom: 10px;
+      }
+      .amount-highlight input {
+          font-size: 1.5em;
+          font-weight: bold;
+          color: #5d4e37;
+          border: 3px solid #e8ddd0;
+          text-align: center;
+      }
+      .notice-box { 
+          background: linear-gradient(135deg, #fff9f0 0%, #fef5e7 100%); 
+          border: 2px solid #f4d9a6; 
+          border-left: 5px solid #d97706;
+          border-radius: 12px; 
+          padding: 20px; 
+          margin: 20px 0; 
+          box-shadow: 0 4px 12px rgba(217, 119, 6, 0.1);
+      }
+      .notice-title { 
+          font-weight: bold; 
+          color: #d97706; 
+          margin-bottom: 15px; 
+          font-size: 1.2em;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .notice-box ul { 
+          list-style: none; 
+          padding-left: 0; 
+      }
+      .notice-box li { 
+          padding: 8px 0; 
+          padding-left: 25px; 
+          position: relative; 
+          font-size: 0.95em; 
+          line-height: 1.7; 
+          color: #6b5d4f;
+      }
+      .notice-box li:before { 
+          content: "•"; 
+          position: absolute; 
+          left: 8px; 
+          font-size: 1.3em;
+          color: #d97706;
+          font-weight: bold;
+      }
+      .bank-info { 
+          background: linear-gradient(135deg, #e8f4e8 0%, #d4edda 100%); 
+          border: 2px solid #a8d5a8; 
+          border-left: 5px solid #2e7d32;
+          border-radius: 12px; 
+          padding: 20px; 
+          margin: 20px 0; 
+          box-shadow: 0 4px 12px rgba(46, 125, 50, 0.1);
+      }
+      .bank-info-title { 
+          font-weight: bold; 
+          color: #2e7d32; 
+          margin-bottom: 15px; 
+          font-size: 1.2em;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .bank-info p { 
+          margin: 8px 0; 
+          font-size: 1em; 
+          color: #5d4e37;
+          padding-left: 10px;
+      }
+      .bank-info strong {
+          color: #2e7d32;
+          min-width: 60px;
+          display: inline-block;
+      }
+      .contact-info { 
+          background: linear-gradient(135deg, #f5f0e8 0%, #ebe2d5 100%); 
+          border: 2px solid #e8ddd0; 
+          border-radius: 12px; 
+          padding: 25px; 
+          text-align: center; 
+          margin-top: 20px; 
+          box-shadow: 0 4px 12px rgba(139, 115, 85, 0.1);
+      }
+      .contact-info h3 { 
+          color: #8b7355; 
+          margin-bottom: 15px;
+          font-size: 1.4em;
+      }
+      .contact-info p { 
+          margin: 10px 0; 
+          font-size: 1.05em; 
+          color: #6b5d4f;
+          font-weight: 500;
+      }
+      .btn-submit { 
+          width: 100%; 
+          padding: 18px; 
+          background: linear-gradient(135deg, #8b7355 0%, #6b5d4f 100%); 
+          color: white; 
+          border: none; 
+          border-radius: 12px; 
+          font-size: 1.3em; 
+          font-weight: bold; 
+          cursor: pointer; 
+          transition: all 0.3s; 
+          margin-top: 15px;
+          box-shadow: 0 4px 15px rgba(139, 115, 85, 0.3);
+      }
+      .btn-submit:hover:not(:disabled) { 
+          transform: translateY(-3px); 
+          box-shadow: 0 8px 25px rgba(139, 115, 85, 0.4); 
+          background: linear-gradient(135deg, #9d8567 0%, #7d6d5f 100%);
+      }
+      .btn-submit:active:not(:disabled) {
+          transform: translateY(-1px);
+      }
+      .btn-submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+      }
+      .required { 
+          color: #c97b63; 
+          margin-left: 3px;
+          font-size: 1.1em;
+      }
+      .loading-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.75);
+          z-index: 9999;
+          justify-content: center;
+          align-items: center;
+          backdrop-filter: blur(5px);
+      }
+      .loading-content {
+          background: white;
+          padding: 50px 40px;
+          border-radius: 20px;
+          text-align: center;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+          animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+          from {
+              opacity: 0;
+              transform: translateY(-30px);
+          }
+          to {
+              opacity: 1;
+              transform: translateY(0);
+          }
+      }
+      .spinner {
+          border: 5px solid #f3f3f3;
+          border-top: 5px solid #b89968;
+          border-radius: 50%;
+          width: 60px;
+          height: 60px;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 25px;
+      }
+      @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+      }
+      .loading-content h3 {
+          color: #5d4e37;
+          margin-bottom: 10px;
+          font-size: 1.4em;
+      }
+      .loading-content p {
+          color: #8b7355;
+          font-size: 1em;
+      }
+      .helper-text {
+          font-size: 0.85em;
+          color: #8b7355;
+          margin-top: 6px;
+          font-style: italic;
+      }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-content">
+      <div class="spinner"></div>
+      <h3>🌸 正在送出訂單...</h3>
+      <p>請稍候，資料處理中</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="header">
+      <h1>🌸 花禾子 Florescence</h1>
+      <p>線上訂單填寫系統</p>
+  </div>
+
+  <form id="orderForm">
+      <div class="section">
+          <div class="section-title">👤 訂購人資訊</div>
+          
+          <div class="form-row">
+              <div class="form-group">
+                  <label>姓名 <span class="required">*</span></label>
+                  <input type="text" name="buyerName" id="buyerName" placeholder="請輸入您的姓名" required>
+              </div>
+              <div class="form-group">
+                  <label>電話 <span class="required">*</span></label>
+                  <input type="tel" name="buyerPhone" id="buyerPhone" placeholder="請輸入聯絡電話" required>
+              </div>
+          </div>
+
+          <div class="form-row">
+              <div class="form-group">
+                  <label>取貨日期 <span class="required">*</span></label>
+                  <input type="date" name="pickupDate" id="pickupDate" required>
+              </div>
+              <div class="form-group">
+                  <label>取貨時間 <span class="required">*</span></label>
+                  <input type="time" name="pickupTime" id="pickupTime" required value="14:00">
+                  <div class="helper-text">💡 營業時間：12:00 - 24:00</div>
+              </div>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">📦 收件人資訊</div>
+          
+          <div class="checkbox-group" style="margin-bottom: 20px;">
+              <input type="checkbox" id="sameAsBuyer">
+              <label for="sameAsBuyer">收件人與訂購人相同</label>
+          </div>
+
+          <div id="recipientFields">
+              <div class="form-row">
+                  <div class="form-group">
+                      <label>收件人姓名 <span class="required">*</span></label>
+                      <input type="text" name="recipientName" id="recipientName" placeholder="請輸入收件人姓名" required>
+                  </div>
+                  <div class="form-group">
+                      <label>收件人電話 <span class="required">*</span></label>
+                      <input type="tel" name="recipientPhone" id="recipientPhone" placeholder="請輸入收件人電話" required>
+                  </div>
+              </div>
+
+              <div class="form-group">
+                  <label>收件地址 <span class="required">*</span></label>
+                  <input type="text" name="recipientAddress" id="recipientAddress" placeholder="請輸入完整收件地址" required>
+              </div>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">🌸 商品資訊</div>
+          <div class="form-group">
+              <label>商品 <span class="required">*</span></label>
+              <textarea name="product" id="product" placeholder="請描述您想要的花束/花禮內容（例如：玫瑰花束、康乃馨盆花等）" required></textarea>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">🎨 包裝顏色</div>
+          <div class="form-group">
+              <label>包裝顏色 <span class="required">*</span></label>
+              <input type="text" name="packagingColor" id="packagingColor" placeholder="請輸入希望的包裝顏色（例如：粉色、白色、香檳色等）" required>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">🛍️ 加購提袋</div>
+          <div class="form-group">
+              <label style="margin-bottom: 12px;">是否加購提袋？</label>
+              <div class="radio-group">
+                  <label class="radio-option">
+                      <input type="radio" name="bag" value="不需要" checked>
+                      <span>不需要</span>
+                  </label>
+                  <label class="radio-option">
+                      <input type="radio" name="bag" value="紙質提袋 $20">
+                      <span>紙質提袋 $20</span>
+                  </label>
+                  <label class="radio-option">
+                      <input type="radio" name="bag" value="塑料提袋 $50">
+                      <span>塑料提袋 $50</span>
+                  </label>
+              </div>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">🚚 運費</div>
+          <div class="form-group">
+              <label>運費金額</label>
+              <input type="number" name="shippingFee" id="shippingFee" value="0" min="0" placeholder="0">
+              <div class="helper-text">💡 到店取貨請填 0，需配送請填寫運費金額</div>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">💰 訂單金額</div>
+          <div class="form-group amount-highlight">
+              <label>訂單總金額 <span class="required">*</span></label>
+              <input type="number" name="amount" id="amount" required min="0" placeholder="請輸入訂單總金額">
+              <div class="helper-text" style="text-align: center; margin-top: 10px;">💡 請輸入與店家確認後的訂單總金額（含運費）</div>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">💌 卡片內容</div>
+          <div class="form-group">
+              <label>卡片內容</label>
+              <textarea name="cardMessage" id="cardMessage" placeholder="我們有附上一張名片大小的小卡片，有需要幫忙寫什麼嗎？"></textarea>
+              <div class="helper-text">💡 如不需要卡片可留空</div>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="section-title">📝 備註</div>
+          <div class="form-group">
+              <label>備註</label>
+              <textarea name="note" id="note" placeholder="其他需求或注意事項（例如：加購照片列印、需要統編收據等）"></textarea>
+          </div>
+      </div>
+
+      <div class="section">
+          <div class="notice-box">
+              <div class="notice-title">⚠️ 注意事項</div>
+              <ul>
+                  <li>填寫訂單後，請確認好商品/金額，並以【全額轉帳/現金支付】。支付完成後才算預定成功喔！</li>
+                  <li>為保障雙方權益，若尚未完成付款，訂單將無法開始製作。</li>
+                  <li>完成付款後，訂單將開始製作（含備貨、包裝等），故無法隨意取消訂單。</li>
+                  <li>花材可能會因為市場浮動而缺貨，若想要的花材無法取得，將儘量以相同色系與價格之其他花材作為替代。</li>
+                  <li>每個花禮都是設計師親自手作完成，故無法與所提供的照片完全一致，敬請諒解。</li>
+                  <li>為響應環保，本店不主動提供塑料提袋。建議取貨時自備環保袋或加購提袋。</li>
+                  <li>如需協助列印照片，請提前告知。（4*6寸照片一張30元）</li>
+                  <li>如需統編/收據，請主動告知我們，謝謝。</li>
+              </ul>
+          </div>
+
+          <div class="bank-info">
+              <div class="bank-info-title">🏦 銀行轉帳資訊</div>
+              <p><strong>銀行：</strong>台灣企銀</p>
+              <p><strong>代碼：</strong>050</p>
+              <p><strong>帳號：</strong>00712068817</p>
+              <p><strong>戶名：</strong>繁花予槿商行郭書沅</p>
+          </div>
+
+          <div class="contact-info">
+              <h3>🌸 花禾子 Florescence</h3>
+              <p>📞 0922-317-535 / 0984-259-170</p>
+              <p>📍 台中市南屯區大墩十四街132號1樓</p>
+              <p>📧 florescence.fs@gmail.com</p>
+              <p style="margin-top: 15px; font-size: 0.95em; color: #8b7355;">⏰ 營業時間：12:00 - 24:00</p>
+              <p style="font-size: 0.9em; color: #8b7355;">如需要在非營業時間取貨可提前預約溝通</p>
+          </div>
+      </div>
+
+      <div class="section">
+          <button type="submit" class="btn-submit" id="submitBtn">✅ 確認送出訂單</button>
+      </div>
+  </form>
+</div>
+
+<script>
+const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
+
+let isSubmitting = false;
+
+// 收件人與訂購人相同
+document.getElementById('sameAsBuyer').addEventListener('change', function() {
+  const fields = document.getElementById('recipientFields');
+  const recipientName = document.getElementById('recipientName');
+  const recipientPhone = document.getElementById('recipientPhone');
+  const recipientAddress = document.getElementById('recipientAddress');
+  
+  if (this.checked) {
+      recipientName.value = document.getElementById('buyerName').value;
+      recipientPhone.value = document.getElementById('buyerPhone').value;
+      recipientAddress.value = '同上（自取）';
+      fields.style.opacity = '0.5';
+      recipientName.readOnly = true;
+      recipientPhone.readOnly = true;
+      recipientAddress.readOnly = true;
+  } else {
+      if (recipientAddress.value === '同上（自取）') {
+          recipientAddress.value = '';
+      }
+      fields.style.opacity = '1';
+      recipientName.readOnly = false;
+      recipientPhone.readOnly = false;
+      recipientAddress.readOnly = false;
+  }
+});
+
+// 訂購人資訊變更時同步更新收件人（如果勾選了相同）
+document.getElementById('buyerName').addEventListener('input', function() {
+  if (document.getElementById('sameAsBuyer').checked) {
+      document.getElementById('recipientName').value = this.value;
+  }
+});
+
+document.getElementById('buyerPhone').addEventListener('input', function() {
+  if (document.getElementById('sameAsBuyer').checked) {
+      document.getElementById('recipientPhone').value = this.value;
+  }
+});
+
+// 表單提交
+document.getElementById('orderForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  if (isSubmitting) {
+      alert('⏳ 訂單正在處理中，請稍候...');
+      return;
+  }
+  
+  // 確認對話框
+  if (!confirm('🌸 確定要送出訂單嗎？\n\n請確認所有資料都正確無誤。')) {
+      return;
+  }
+  
+  isSubmitting = true;
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  
+  const formData = new FormData(e.target);
+  const data = {
+      action: 'submitCustomerOrder',
+      timestamp: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),
+      buyerName: formData.get('buyerName'),
+      buyerPhone: formData.get('buyerPhone'),
+      pickupDate: formData.get('pickupDate'),
+      pickupTime: formData.get('pickupTime'),
+      recipientName: formData.get('recipientName'),
+      recipientPhone: formData.get('recipientPhone'),
+      recipientAddress: formData.get('recipientAddress'),
+      product: formData.get('product'),
+      packagingColor: formData.get('packagingColor'),
+      bag: formData.get('bag'),
+      shippingFee: formData.get('shippingFee'),
+      amount: formData.get('amount'),
+      cardMessage: formData.get('cardMessage') || '',
+      note: formData.get('note') || '',
+      sendEmail: true,
+      emailRecipients: ['lkjhgfasd177@gmail.com', 'florescence.fs@gmail.com']
+  };
+  
+  try {
+      const response = await fetch(CLOUD_API, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+      });
+      
+      // 儲存訂單資料到 sessionStorage
+      sessionStorage.setItem('orderData', JSON.stringify({
+          buyerName: data.buyerName,
+          amount: data.amount,
+          pickupDate: data.pickupDate,
+          pickupTime: data.pickupTime
+      }));
+      
+      // 2秒後跳轉到成功頁面
+      setTimeout(() => {
+          window.location.href = 'order-success.html';
+      }, 2000);
+      
+  } catch (error) {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      alert('❌ 送出失敗：' + error.message + '\n\n請直接致電：0922-317-535 / 0984-259-170');
+      isSubmitting = false;
+      document.getElementById('submitBtn').disabled = false;
+  }
+});
+
+// 設定最小取貨日期為明天
+window.onload = function() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('pickupDate').min = tomorrow.toISOString().split('T')[0];
+};
+</script>
+
+</body>
+</html>
