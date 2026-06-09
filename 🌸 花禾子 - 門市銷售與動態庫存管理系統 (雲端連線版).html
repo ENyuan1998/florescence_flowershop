@@ -248,15 +248,22 @@ async function fetchCloudData() {
           localStorage.setItem('flowerSalesHistoryV8', JSON.stringify(cloudRes.salesHistory));
       }
 
-      // 載入線上訂單
+      // 載入線上訂單 - 修正版
       const urlOnlineOrders = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/客戶訂單?key=${API_KEY}`;
       try {
-          const resOnline = await fetch(urlOnlineOrders).then(r => r.json());
-          if (resOnline.values && resOnline.values.length > 1) {
+          const resOnline = await fetch(urlOnlineOrders);
+          const jsonOnline = await resOnline.json();
+          
+          // 檢查是否有錯誤
+          if (jsonOnline.error) {
+              console.log('讀取客戶訂單工作表失敗：', jsonOnline.error.message);
               onlineOrders = [];
-              for (let i = 1; i < resOnline.values.length; i++) {
-                  const row = resOnline.values[i];
-                  if (row.length >= 17) {
+          } else if (jsonOnline.values && jsonOnline.values.length > 1) {
+              onlineOrders = [];
+              for (let i = 1; i < jsonOnline.values.length; i++) {
+                  const row = jsonOnline.values[i];
+                  // 修正：改為至少 14 個欄位（因為有些欄位可能是空的）
+                  if (row.length >= 14) {
                       onlineOrders.push({
                           rowIndex: i + 1,
                           orderNumber: row[0] || '',
@@ -279,16 +286,29 @@ async function fetchCloudData() {
                       });
                   }
               }
+              console.log('✅ 成功載入線上訂單：', onlineOrders.length, '筆');
+          } else {
+              console.log('客戶訂單工作表為空或只有標題列');
+              onlineOrders = [];
           }
-      } catch(e) { console.log('客戶訂單工作表尚未建立或無資料'); }
+      } catch(e) { 
+          console.log('載入線上訂單時發生錯誤：', e.message);
+          onlineOrders = [];
+      }
 
+      // 載入固定成本
       const urlFixedCost = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/固定成本?key=${API_KEY}`;
       try {
-          const resFixed = await fetch(urlFixedCost).then(r => r.json());
-          if (resFixed.values && resFixed.values.length > 1) {
+          const resFixed = await fetch(urlFixedCost);
+          const jsonFixed = await resFixed.json();
+          
+          if (jsonFixed.error) {
+              console.log('讀取固定成本工作表失敗：', jsonFixed.error.message);
               fixedCosts = [];
-              for (let i = 1; i < resFixed.values.length; i++) {
-                  const row = resFixed.values[i];
+          } else if (jsonFixed.values && jsonFixed.values.length > 1) {
+              fixedCosts = [];
+              for (let i = 1; i < jsonFixed.values.length; i++) {
+                  const row = jsonFixed.values[i];
                   if (row.length >= 4) {
                       fixedCosts.push({
                           id: row[0],
@@ -299,31 +319,53 @@ async function fetchCloudData() {
                       });
                   }
               }
+          } else {
+              fixedCosts = [];
           }
-      } catch(e) { console.log('固定成本工作表尚未建立'); }
-
-      const urlSpreadsheet = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
-      const ssResponse = await fetch(urlSpreadsheet).then(r => r.json());
-      if (ssResponse.values && ssResponse.values.length > 1) {
-          let cloudLedger = [];
-          for (let i = 1; i < ssResponse.values.length; i++) {
-              const row = ssResponse.values[i]; 
-              if(row.length < 9) continue;
-              cloudLedger.push({
-                  id: row[0], type: row[1], date: row[2], name: row[3].trim(),
-                  totalQty: parseFloat(row[4])||0, totalCost: parseFloat(row[5])||0,
-                  lossQty: parseFloat(row[6])||0, singleCost: parseFloat(row[7])||0, sellPrice: parseFloat(row[8])||0
-              });
-          }
-          ledgerData = cloudLedger;
-          localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
+      } catch(e) { 
+          console.log('載入固定成本時發生錯誤：', e.message);
+          fixedCosts = [];
       }
+
+      // 載入進貨紀錄
+      const urlSpreadsheet = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
+      try {
+          const ssResponse = await fetch(urlSpreadsheet);
+          const jsonLedger = await ssResponse.json();
+          
+          if (jsonLedger.error) {
+              console.log('讀取進貨紀錄工作表失敗：', jsonLedger.error.message);
+          } else if (jsonLedger.values && jsonLedger.values.length > 1) {
+              let cloudLedger = [];
+              for (let i = 1; i < jsonLedger.values.length; i++) {
+                  const row = jsonLedger.values[i]; 
+                  if(row.length < 9) continue;
+                  cloudLedger.push({
+                      id: row[0], type: row[1], date: row[2], name: row[3].trim(),
+                      totalQty: parseFloat(row[4])||0, totalCost: parseFloat(row[5])||0,
+                      lossQty: parseFloat(row[6])||0, singleCost: parseFloat(row[7])||0, sellPrice: parseFloat(row[8])||0
+                  });
+              }
+              ledgerData = cloudLedger;
+              localStorage.setItem('flowerLedgerDataV8', JSON.stringify(ledgerData));
+          }
+      } catch(e) {
+          console.log('載入進貨紀錄時發生錯誤：', e.message);
+      }
+      
       document.getElementById('syncStatus').innerText = '☁️ 雲端資料同步完成！';
+      
+      // 如果當前在線上訂單頁面，自動渲染
+      if (document.getElementById('tab-online-orders').classList.contains('active')) {
+          renderOnlineOrders();
+      }
+      
   } catch (e) {
-      console.error(e);
+      console.error('雲端連線錯誤：', e);
       document.getElementById('syncStatus').innerText = '⚠️ 雲端連線失敗，請檢查網路或 API 設定';
   }
 }
+
 
 function switchTab(tabId) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
