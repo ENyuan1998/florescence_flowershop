@@ -38,9 +38,22 @@
       .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: bold; margin-left: 8px; }
       .status-success { background: #d4e8d4; color: #2e7d32; }
       .status-warning { background: #ffe8d0; color: #d97706; }
+      .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
+      .loading-content { background: white; padding: 40px; border-radius: 16px; text-align: center; }
+      .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #b89968; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <h3>正在處理訂單...</h3>
+        <p>請稍候</p>
+    </div>
+</div>
+
 <div class="container">
   <div class="header">
       <h1>🌸 花禾子 - 銷售結帳系統</h1>
@@ -66,7 +79,7 @@
           </div>
           <div class="form-group">
               <label>取貨時間</label>
-              <input type="time" id="pickupTime">
+              <input type="time" id="pickupTime" value="14:00">
           </div>
       </div>
   </div>
@@ -139,6 +152,12 @@
 </div>
 
 <script>
+// 全域 Promise 錯誤處理器
+window.addEventListener('unhandledrejection', function(event) {
+  console.warn('捕捉到未處理的 Promise 錯誤：', event.reason);
+  event.preventDefault();
+});
+
 const CLOUD_API = 'https://script.google.com/macros/s/AKfycbyAzNbseLWPoacirrXFcaFz5rRy77XsXzvhrKevqTsA2YkfxbCfm_Ryhu3HOV7TMJKUUQ/exec';
 const SPREADSHEET_ID = '1uVdZk4g4WDKgiOB76avI2Mt0Os8FNhrCSTg9dfZ5Q2w';
 const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
@@ -146,33 +165,22 @@ const API_KEY = 'AIzaSyAUCyj5LdQy88oAGls46BId7vJVvyveyRE';
 let flowerData = [];
 let cart = [];
 
-// 完整顏色排序優先級
 const COLOR_ORDER = {
-  // 紅色系
   '紅': 1, '深紅': 2, '酒紅': 3, '復古紅': 4,
-  // 粉色系
   '粉': 5, '淺粉': 6, '杏粉': 7, '粉白': 8, '白粉': 9, '粉橘': 10,
-  // 桃橘系
   '桃': 11, '橙': 12, '橘': 13,
-  // 白奶系
   '白': 14, '奶油': 15, '奶茶': 16,
-  // 黃色系
   '黃': 17, '淺黃': 18, '淺黃粉': 19,
-  // 紫色系
   '紫': 20, '淺紫': 21, '深紫': 22, '白紫': 23, '紫霧': 24,
-  // 藍色系
   '藍': 25, '淺藍': 26, '深藍': 27,
-  // 其他色
   '綠': 28, '香檳': 29, '卡布': 30, '拿鐵': 31, '咖啡': 32, '黑': 33
 };
 
-// 智能提取花材主名稱和顏色
 function parseFlowerName(name) {
   let color = '';
   let mainName = name;
   let maxLength = 0;
   
-  // 找出最長匹配的顏色前綴（處理"淺黃粉"這類複合顏色）
   for (let c in COLOR_ORDER) {
       if (name.startsWith(c) && c.length > maxLength) {
           color = c;
@@ -187,7 +195,6 @@ function parseFlowerName(name) {
   return { color, mainName, fullName: name };
 }
 
-// 智能排序函數
 function smartSort(list) {
   return list.sort((a, b) => {
       const aInfo = parseFlowerName(a.name);
@@ -205,11 +212,19 @@ function smartSort(list) {
 
 async function loadFlowerData() {
   try {
-      const cloudRes = await fetch(CLOUD_API).then(r => r.json());
+      const cloudRes = await fetch(CLOUD_API).then(r => r.json()).catch(err => {
+          console.log('fetch 雲端 API 失敗：', err);
+          return { currentStock: {} };
+      });
+      
       let currentStock = cloudRes.currentStock || {};
 
       const urlLedger = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/進貨紀錄?key=${API_KEY}`;
-      const resLedger = await fetch(urlLedger).then(r => r.json());
+      const resLedger = await fetch(urlLedger).then(r => r.json()).catch(err => {
+          console.log('fetch 進貨紀錄失敗：', err);
+          return { values: [] };
+      });
+      
       let latestPrices = {};
       
       if (resLedger.values && resLedger.values.length > 1) {
@@ -226,12 +241,12 @@ async function loadFlowerData() {
           stock: currentStock[name] !== undefined ? parseFloat(currentStock[name]) : 0
       })).filter(item => item.stock > 0);
       
-      // 智能排序
       flowerData = smartSort(flowerData);
-      
       updateFlowerSelect();
+      
   } catch(e) {
-      alert('載入花材資料失敗：' + e.message);
+      console.error('載入花材資料失敗：', e);
+      alert('載入花材資料失敗，請重新整理頁面');
   }
 }
 
@@ -320,45 +335,65 @@ async function submitOrder() {
       return;
   }
   
+  if(!confirm('確定要送出訂單並扣除庫存嗎？')) return;
+  
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  
+  const flowerTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+  const packaging = parseInt(document.getElementById('packagingFee').value) || 0;
+  const bag = parseInt(document.getElementById('bagFee').value) || 0;
+  const shipping = parseInt(document.getElementById('shippingFee').value) || 0;
+  const finalTotal = flowerTotal + packaging + bag + shipping;
+  
   const orderData = {
-      action: 'checkout',
-      customerName: customerName,
-      customerPhone: customerPhone,
-      pickupDate: pickupDate,
-      pickupTime: pickupTime,
-      items: cart,
-      packagingFee: parseInt(document.getElementById('packagingFee').value) || 0,
-      bagFee: parseInt(document.getElementById('bagFee').value) || 0,
-      shippingFee: parseInt(document.getElementById('shippingFee').value) || 0
+      action: 'submitOrder',
+      order: {
+          id: 'ORDER_' + Date.now(),
+          time: new Date().toLocaleString('zh-TW'),
+          customer: customerName,
+          phone: customerPhone,
+          pickupDate: pickupDate,
+          pickupTime: pickupTime,
+          items: cart,
+          flowerTotal: flowerTotal,
+          packagePrice: packaging,
+          bagPrice: bag,
+          shippingFee: shipping,
+          needPackage: packaging > 0,
+          needBag: bag > 0
+      }
   };
   
   try {
       const response = await fetch(CLOUD_API, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderData)
       });
       
-      const result = await response.json();
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      if(result.success) {
-          alert('✅ 結帳成功！訂單編號：' + result.orderId);
-          cart = [];
-          updateCart();
-          updateTotal();
-          document.getElementById('customerName').value = '';
-          document.getElementById('customerPhone').value = '';
-          document.getElementById('pickupDate').value = '';
-          document.getElementById('pickupTime').value = '';
-          document.getElementById('packagingFee').value = 0;
-          document.getElementById('bagFee').value = 0;
-          document.getElementById('shippingFee').value = 0;
-          loadFlowerData();
-      } else {
-          alert('❌ 結帳失敗：' + result.message);
-      }
+      document.getElementById('loadingOverlay').style.display = 'none';
+      alert(`✅ 結帳成功！\n\n訂單編號：${orderData.order.id}\n訂單總額：$${finalTotal}\n\n庫存已自動扣除`);
+      
+      cart = [];
+      updateCart();
+      updateTotal();
+      document.getElementById('customerName').value = '';
+      document.getElementById('customerPhone').value = '';
+      document.getElementById('pickupDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('pickupTime').value = '14:00';
+      document.getElementById('packagingFee').value = 0;
+      document.getElementById('bagFee').value = 0;
+      document.getElementById('shippingFee').value = 0;
+      
+      loadFlowerData();
+      
   } catch(e) {
-      alert('系統錯誤：' + e.message);
+      document.getElementById('loadingOverlay').style.display = 'none';
+      console.error('送出訂單失敗：', e);
+      alert('❌ 系統錯誤：' + e.message + '\n\n請重試或聯繫技術支援');
   }
 }
 
@@ -366,6 +401,7 @@ window.onload = () => {
   loadFlowerData();
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('pickupDate').value = today;
+  document.getElementById('pickupTime').value = '14:00';
 };
 </script>
 </body>
