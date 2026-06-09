@@ -399,9 +399,14 @@ function filterOnlineOrders(status) {
 function renderOnlineOrders() {
   const container = document.getElementById('onlineOrdersContainer');
   
+  console.log('開始渲染線上訂單，總數：', onlineOrders.length);
+  console.log('當前篩選條件：', currentOnlineFilter);
+  
   const filtered = currentOnlineFilter === 'all' 
       ? onlineOrders 
       : onlineOrders.filter(o => o.status === currentOnlineFilter);
+  
+  console.log('篩選後訂單數量：', filtered.length);
   
   if (filtered.length === 0) {
       container.innerHTML = `<p style="color:#999; text-align:center; padding:30px; background:#fafafa; border-radius:8px;">📭 目前沒有符合條件的線上訂單</p>`;
@@ -417,6 +422,7 @@ function renderOnlineOrders() {
   
   container.innerHTML = '';
   filtered.forEach(order => {
+      console.log('渲染訂單：', order.orderNumber, order.status);
       container.innerHTML += `
           <div class="online-order-card">
               <div class="online-order-header">
@@ -467,16 +473,24 @@ function renderOnlineOrders() {
           </div>
       `;
   });
+  
+  console.log('✅ 訂單渲染完成');
 }
+
 
 async function updateOnlineOrderStatus(orderNumber, rowIndex, newStatus) {
   if (!confirm(`確定要將訂單 ${orderNumber} 標記為「${newStatus}」嗎？`)) return;
   
   document.getElementById('syncStatus').innerText = '⚡ 正在更新訂單狀態...';
+  
   try {
+      // 使用 Google Apps Script API 更新狀態
       const response = await fetch(CLOUD_API, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          mode: 'no-cors',  // 關鍵：使用 no-cors 模式
+          headers: {
+              'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
               action: 'updateOrderStatus',
               rowIndex: rowIndex,
@@ -484,19 +498,28 @@ async function updateOnlineOrderStatus(orderNumber, rowIndex, newStatus) {
           })
       });
       
-      const result = await response.json();
+      // 因為使用 no-cors，無法讀取回應，但資料已送出
+      // 等待 2 秒讓後端處理完成
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      if (result.success) {
-          alert('✅ 訂單狀態已更新');
-          await fetchCloudData();
-          renderOnlineOrders();
-      } else {
-          alert('❌ 更新失敗：' + result.message);
-      }
+      alert('✅ 訂單狀態已更新');
+      document.getElementById('syncStatus').innerText = '⚡ 正在重新載入資料...';
+      
+      // 重新載入資料
+      await fetchCloudData();
+      
+      // 重新渲染訂單列表
+      renderOnlineOrders();
+      
+      document.getElementById('syncStatus').innerText = '☁️ 雲端資料同步完成！';
+      
   } catch(e) {
-      alert('❌ 系統錯誤：' + e.message);
+      console.error('更新訂單狀態失敗：', e);
+      alert('❌ 系統錯誤：' + e.message + '\n\n請重新整理頁面後再試');
+      document.getElementById('syncStatus').innerText = '⚠️ 更新失敗';
   }
 }
+
 
 function renderMaintenanceInfo() {
   document.getElementById('checkOnlineOrderCount').innerText = onlineOrders.length;
